@@ -12,7 +12,9 @@ import {
   BanknotesIcon, 
   CreditCardIcon, 
   UserGroupIcon,
-  ArrowTrendingUpIcon 
+  ArrowTrendingUpIcon,
+  TableCellsIcon,
+  ChartBarIcon 
 } from '@heroicons/react/24/outline';
 
 interface MerchantRevenue {
@@ -34,6 +36,7 @@ export default function Home() {
     oneTime: {},
     subscription: {}
   });
+  const [overviewMode, setOverviewMode] = useState<'chart' | 'table'>('chart');
   
   const now = moment().tz(timezone);
   const [selectedYear, setSelectedYear] = useState(now.year());
@@ -152,50 +155,69 @@ export default function Home() {
         {/* 总体数据分析区域 */}
         {(dailyTotals.length > 0 || Object.keys(totalRevenue).length > 0) && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 收入趋势图表 */}
-            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-4">Revenue Trend</h2>
-              <RevenueChart
-                data={dailyTotals}
-                currency={getPrimaryCurrency()}
-              />
-            </div>
-
             {/* Revenue Breakdown */}
             <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-4">Revenue Breakdown</h2>
               <RevenueBreakdownView breakdown={totalBreakdown} />
             </div>
 
-            {/* Daily Statistics */}
-            <div className="lg:col-span-2 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="px-4 py-2 text-left">Date</th>
-                      <th className="px-4 py-2 text-left">Orders</th>
-                      <th className="px-4 py-2 text-left">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyTotals.map((day) => (
-                      <tr key={day.date} className="border-t">
-                        <td className="px-4 py-2">{day.date}</td>
-                        <td className="px-4 py-2">{day.orderCount}</td>
-                        <td className="px-4 py-2">
-                          {Object.entries(day.revenue).map(([currency, amount]) => (
-                            <div key={currency}>
-                              {currency}: ${(amount as number).toFixed(2)}
-                            </div>
-                          ))}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* 数据视图（图表/表格） */}
+            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">
+                  {overviewMode === 'chart' ? 'Revenue Trend' : 'Daily Statistics'}
+                </h2>
+                <button
+                  onClick={() => setOverviewMode(prev => prev === 'chart' ? 'table' : 'chart')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600"
+                >
+                  {overviewMode === 'chart' ? (
+                    <>
+                      <TableCellsIcon className="h-5 w-5" />
+                      <span className="text-sm">Show Table</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChartBarIcon className="h-5 w-5" />
+                      <span className="text-sm">Show Chart</span>
+                    </>
+                  )}
+                </button>
               </div>
+
+              {overviewMode === 'chart' ? (
+                <RevenueChart
+                  data={dailyTotals}
+                  currency={getPrimaryCurrency()}
+                />
+              ) : (
+                <div className="overflow-x-auto max-h-[400px]">
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-2 text-left">Date</th>
+                        <th className="px-4 py-2 text-left">Orders</th>
+                        <th className="px-4 py-2 text-left">Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dailyTotals.map((day) => (
+                        <tr key={day.date} className="border-t hover:bg-gray-50">
+                          <td className="px-4 py-2">{day.date}</td>
+                          <td className="px-4 py-2">{day.orderCount}</td>
+                          <td className="px-4 py-2">
+                            {Object.entries(day.revenue).map(([currency, amount]) => (
+                              <div key={currency}>
+                                {currency}: ${(amount as number).toFixed(2)}
+                              </div>
+                            ))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         )}
