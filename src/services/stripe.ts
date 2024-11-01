@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { convertToProperUnits, DateRange } from "@/utils/currency";
 import moment from "moment-timezone";
+import { getPaymentTypeByInterval, PAYMENT_TYPES } from "@/config/paymentTypes";
 
 export interface MerchantRevenue {
   merchantName: string;
@@ -16,8 +17,7 @@ export interface DailyStats {
 export interface RevenueBreakdown {
   oneTime: Record<string, number>;
   subscription: {
-    monthly: Record<string, number>;
-    annual: Record<string, number>;
+    [key: string]: Record<string, number>;
   };
 }
 
@@ -140,13 +140,14 @@ export async function getRevenueBreakdown(
 ): Promise<RevenueBreakdown> {
   const breakdown: RevenueBreakdown = {
     oneTime: {},
-    subscription: {
-      monthly: {},
-      annual: {},
-    }
+    subscription: PAYMENT_TYPES.reduce((acc, type) => {
+      if (type.interval) {
+        acc[type.id] = {};
+      }
+      return acc;
+    }, {} as Record<string, Record<string, number>>)
   };
 
-  // 获取所有收费
   let hasMore = true;
   let startingAfter: string | undefined;
 
@@ -173,13 +174,15 @@ export async function getRevenueBreakdown(
         // 获取订阅详情
         const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
         const interval = subscription.items.data[0]?.price?.recurring?.interval;
+        const intervalCount = subscription.items.data[0]?.price?.recurring?.interval_count || 1;
+        
+        // 构建完整的 interval 字符串
+        const fullInterval = intervalCount > 1 ? `${intervalCount}-${interval}` : interval;
+        const paymentType = getPaymentTypeByInterval(fullInterval);
 
-        if (interval === 'month') {
-          breakdown.subscription.monthly[currency] = 
-            (breakdown.subscription.monthly[currency] || 0) + amount;
-        } else if (interval === 'year') {
-          breakdown.subscription.annual[currency] = 
-            (breakdown.subscription.annual[currency] || 0) + amount;
+        if (paymentType && paymentType.id !== 'oneTime') {
+          breakdown.subscription[paymentType.id][currency] = 
+            (breakdown.subscription[paymentType.id][currency] || 0) + amount;
         }
       } else {
         // 一次性付款

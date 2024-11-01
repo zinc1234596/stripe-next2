@@ -115,57 +115,46 @@ export default function Home() {
     "UTC"
   ];
 
+  // 辅助函数：检查某个付款类型是否有数据
+  const hasDataForPaymentType = (breakdown: RevenueBreakdown, typeId: string) => {
+    if (typeId === 'oneTime') {
+      return Object.keys(breakdown.oneTime).length > 0;
+    }
+    return Object.keys(breakdown.subscription[typeId] || {}).length > 0;
+  };
+
   // 渲染收入明细的辅助函数
-  const renderRevenueBreakdown = (breakdown: RevenueBreakdown) => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
-        {selectedPaymentTypes.has('oneTime') && (
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-2">One-Time Payments</h3>
-            {Object.entries(breakdown.oneTime).map(([currency, amount]) => (
-              <div key={currency} className="flex justify-between py-1">
-                <span>{currency}:</span>
-                <span>${amount.toFixed(2)}</span>
-              </div>
-            ))}
-            {Object.keys(breakdown.oneTime).length === 0 && (
-              <div className="text-gray-500">No one-time payments</div>
-            )}
-          </div>
-        )}
-        
-        {selectedPaymentTypes.has('monthly') && (
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-2">Monthly Subscriptions</h3>
-            {Object.entries(breakdown.subscription.monthly).map(([currency, amount]) => (
-              <div key={currency} className="flex justify-between py-1">
-                <span>{currency}:</span>
-                <span>${amount.toFixed(2)}</span>
-              </div>
-            ))}
-            {Object.keys(breakdown.subscription.monthly).length === 0 && (
-              <div className="text-gray-500">No monthly subscriptions</div>
-            )}
-          </div>
-        )}
-        
-        {selectedPaymentTypes.has('annual') && (
-          <div className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-2">Annual Subscriptions</h3>
-            {Object.entries(breakdown.subscription.annual).map(([currency, amount]) => (
-              <div key={currency} className="flex justify-between py-1">
-                <span>{currency}:</span>
-                <span>${amount.toFixed(2)}</span>
-              </div>
-            ))}
-            {Object.keys(breakdown.subscription.annual).length === 0 && (
-              <div className="text-gray-500">No annual subscriptions</div>
-            )}
-          </div>
-        )}
+  const renderRevenueBreakdown = (breakdown: RevenueBreakdown) => {
+    // 获取所有有数据的付款类型
+    const activeTypes = PAYMENT_TYPES.filter(type => hasDataForPaymentType(breakdown, type.id));
+
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          {activeTypes.map(type => (
+            <div key={type.id} className="bg-white p-4 rounded shadow">
+              <h3 className="font-semibold mb-2">{type.name}</h3>
+              {type.id === 'oneTime' ? (
+                Object.entries(breakdown.oneTime).map(([currency, amount]) => (
+                  <div key={currency} className="flex justify-between py-1">
+                    <span>{currency}:</span>
+                    <span>${amount.toFixed(2)}</span>
+                  </div>
+                ))
+              ) : (
+                Object.entries(breakdown.subscription[type.id] || {}).map(([currency, amount]) => (
+                  <div key={currency} className="flex justify-between py-1">
+                    <span>{currency}:</span>
+                    <span>${Number(amount).toFixed(2)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <main className="p-8">
