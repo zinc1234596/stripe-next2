@@ -84,11 +84,11 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
 
   return (
     <div className="flex flex-col w-full">
-      {/* 图表控制按钮 */}
-      <div className="flex gap-4 mb-4 px-4">
+      {/* 修改按钮布局和样式 */}
+      <div className={`flex flex-wrap gap-2 mb-2 ${compact ? 'px-2' : 'px-4'}`}>
         <button
           onClick={() => toggleLine('revenue')}
-          className={`px-3 py-1 rounded-full text-sm ${
+          className={`px-2 py-0.5 rounded-full text-xs ${
             visibleLines.revenue 
               ? 'bg-indigo-100 text-indigo-600' 
               : 'bg-gray-100 text-gray-500'
@@ -98,7 +98,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
         </button>
         <button
           onClick={() => toggleLine('orderCount')}
-          className={`px-3 py-1 rounded-full text-sm ${
+          className={`px-2 py-0.5 rounded-full text-xs ${
             visibleLines.orderCount 
               ? 'bg-green-100 text-green-600' 
               : 'bg-gray-100 text-gray-500'
@@ -108,7 +108,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
         </button>
         <button
           onClick={() => toggleLine('cumulativeRevenue')}
-          className={`px-3 py-1 rounded-full text-sm ${
+          className={`px-2 py-0.5 rounded-full text-xs ${
             visibleLines.cumulativeRevenue 
               ? 'bg-purple-100 text-purple-600' 
               : 'bg-gray-100 text-gray-500'
@@ -118,7 +118,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
         </button>
         <button
           onClick={() => toggleLine('cumulativeOrders')}
-          className={`px-3 py-1 rounded-full text-sm ${
+          className={`px-2 py-0.5 rounded-full text-xs ${
             visibleLines.cumulativeOrders 
               ? 'bg-blue-100 text-blue-600' 
               : 'bg-gray-100 text-gray-500'
@@ -128,9 +128,15 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
         </button>
       </div>
 
-      <div style={{ width: '100%', height: compact ? 160 : 300 }}>
+      <div style={{ width: '100%', height: compact ? 140 : 300 }}>
         <ResponsiveContainer>
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart 
+            data={chartData} 
+            margin={compact ? 
+              { top: 5, right: 5, left: -20, bottom: 0 } : 
+              { top: 10, right: 10, left: 0, bottom: 0 }
+            }
+          >
             <defs>
               <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#818CF8" stopOpacity={0.2}/>
@@ -156,32 +162,32 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               ticks={generateTicks().map(index => chartData[index].displayDate)}
               interval={0}
               tickSize={compact ? 2 : 5}
-              tick={{ fontSize: compact ? 10 : 12 }}
-              height={20}
+              tick={{ fontSize: compact ? 9 : 12 }}
+              height={compact ? 15 : 20}
             />
             <YAxis 
               yAxisId="left"
               stroke="#94A3B8"
               tickSize={compact ? 2 : 5}
-              tick={{ fontSize: compact ? 10 : 12 }}
-              width={compact ? 30 : 40}
+              tick={{ fontSize: compact ? 9 : 12 }}
+              width={compact ? 25 : 40}
             />
             <YAxis 
               yAxisId="right"
               orientation="right"
               stroke="#94A3B8"
               tickSize={compact ? 2 : 5}
-              tick={{ fontSize: compact ? 10 : 12 }}
-              width={compact ? 30 : 40}
+              tick={{ fontSize: compact ? 9 : 12 }}
+              width={compact ? 25 : 40}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: 'white',
-                borderRadius: '0.75rem',
+                borderRadius: '0.5rem',
                 border: 'none',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-                fontSize: compact ? '12px' : '14px',
-                padding: '8px 12px',
+                fontSize: compact ? '10px' : '14px',
+                padding: compact ? '4px 8px' : '8px 12px',
               }}
               formatter={(value: number, name: string) => {
                 switch (name) {
