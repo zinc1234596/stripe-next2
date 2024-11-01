@@ -24,23 +24,46 @@
 
 ## 快速部署
 
-[![部署到 Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yourusername/stripe-revenue-dashboard)
+[![Deploy to Cloudflare Pages](https://deploy.pages.dev/button)](https://deploy.pages.dev/github.com/yourusername/stripe-revenue-dashboard)
 
-### Cloudflare Pages 部署步骤
-
+### 1. 点击部署
 1. 点击上方的"部署到 Cloudflare Pages"按钮
 2. 登录你的 Cloudflare 账户
 3. 选择要部署的 Git 仓库
-4. 配置以下构建设置:
-   - 构建命令: `npm run build`
-   - 构建输出目录: `.next`
-   - Node.js 版本: 18
-5. 添加环境变量:
-   ```plaintext
-   STRIPE_SECRET_KEY=sk_test_xxxxx
-   DEFAULT_TIMEZONE=Asia/Shanghai
-   ```
-6. 点击部署按钮
+
+### 2. 配置环境变量
+在 Cloudflare Pages 的部署界面中，添加以下环境变量：
+
+| 变量名 | 说明 | 示例值 |
+|--------|------|---------|
+| STRIPE_SECRET_KEY | Stripe API密钥 | sk_test_xxxxx |
+| DEFAULT_TIMEZONE | 默认时区 (可选) | Asia/Shanghai |
+
+#### 获取 Stripe API 密钥:
+1. 登录 [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
+2. 复制 Secret key (以 `sk_test_` 或 `sk_live_` 开头)
+
+### 3. 部署设置
+确保以下设置正确：
+- 构建命令: `npm run build`
+- 构建输出目录: `.next`
+- Node.js 版本: 18
+
+### 4. 多商户支持（可选）
+如需查看多个商户数据，可添加多个密钥：
+```plaintext
+STRIPE_SECRET_KEY_1=sk_test_xxxxx
+STRIPE_SECRET_KEY_2=sk_test_yyyyy
+STRIPE_SECRET_KEY_3=sk_test_zzzzz
+```
+
+## 支持的时区
+常用时区参考：
+- `Asia/Shanghai` (中国)
+- `Asia/Tokyo` (日本)
+- `America/New_York` (美国东部)
+- `Europe/London` (英国)
+- `UTC` (世界标准时间)
 
 ## 本地开发
 
