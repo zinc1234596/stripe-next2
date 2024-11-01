@@ -238,8 +238,6 @@ export default function Home() {
             <MerchantCard
               key={index}
               {...merchant}
-              isExpanded={expandedMerchants.has(merchant.merchantName)}
-              onToggleExpand={() => handleToggleExpand(merchant.merchantName)}
             />
           ))}
         </div>
