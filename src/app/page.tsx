@@ -5,6 +5,15 @@ import { DateTimeSelector } from "@/components/DateTimeSelector";
 import { MerchantCard } from "@/components/MerchantCard";
 import { RevenueBreakdownView } from "@/components/RevenueBreakdownView";
 import { DailyStats, RevenueBreakdown } from "@/services/stripe";
+import { DashboardLayout } from "@/components/Layout/DashboardLayout";
+import { StatCard } from "@/components/Cards/StatCard";
+import { RevenueChart } from "@/components/Charts/RevenueChart";
+import { 
+  BanknotesIcon, 
+  CreditCardIcon, 
+  UserGroupIcon,
+  ArrowTrendingUpIcon 
+} from '@heroicons/react/24/outline';
 
 interface MerchantRevenue {
   merchantName: string;
@@ -61,33 +70,79 @@ export default function Home() {
     }
   };
 
+  // 计算总订单数
+  const getTotalOrders = () => {
+    return dailyTotals.reduce((sum, day) => sum + day.orderCount, 0);
+  };
+
+  // 获取主要货币
+  const getPrimaryCurrency = () => {
+    return Object.keys(totalRevenue)[0] || 'USD';
+  };
+
   return (
-    <main className="p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">Revenue Analytics</h1>
+    <DashboardLayout>
+      <h1 className="text-2xl font-bold mb-6">Revenue Analytics</h1>
 
+      <div className="space-y-6">
+        <DateTimeSelector
+          timezone={timezone}
+          selectedYear={selectedYear}
+          selectedMonth={selectedMonth}
+          onTimezoneChange={setTimezone}
+          onYearChange={setSelectedYear}
+          onMonthChange={setSelectedMonth}
+          loading={loading}
+          onFetch={fetchRevenue}
+        />
+
+        {period && (
+          <div className="text-sm text-gray-600">
+            Period: {moment(period.start).format('YYYY-MM-DD HH:mm')} to{' '}
+            {moment(period.end).format('YYYY-MM-DD HH:mm')} ({timezone})
+          </div>
+        )}
+
+        {error && <div className="text-red-500">{error}</div>}
+
+        {/* 统计卡片 */}
+        {Object.keys(totalRevenue).length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <StatCard
+              title="Total Revenue"
+              value={`$${Object.values(totalRevenue)[0].toFixed(2)}`}
+              icon={<BanknotesIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              title="Total Orders"
+              value={getTotalOrders()}
+              icon={<CreditCardIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              title="Active Merchants"
+              value={merchantsData.length}
+              icon={<UserGroupIcon className="h-6 w-6" />}
+            />
+            <StatCard
+              title="Average Order Value"
+              value={`$${(Object.values(totalRevenue)[0] / getTotalOrders()).toFixed(2)}`}
+              icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
+            />
+          </div>
+        )}
+
+        {/* 收入趋势图表 */}
+        {dailyTotals.length > 0 && (
+          <div className="grid grid-cols-1 gap-4">
+            <RevenueChart
+              data={dailyTotals}
+              currency={getPrimaryCurrency()}
+            />
+          </div>
+        )}
+
+        {/* 商户列表 */}
         <div className="space-y-4">
-          <DateTimeSelector
-            timezone={timezone}
-            selectedYear={selectedYear}
-            selectedMonth={selectedMonth}
-            onTimezoneChange={setTimezone}
-            onYearChange={setSelectedYear}
-            onMonthChange={setSelectedMonth}
-            loading={loading}
-            onFetch={fetchRevenue}
-          />
-
-          {period && (
-            <div className="text-sm text-gray-600">
-              Period: {moment(period.start).format('YYYY-MM-DD HH:mm')} to{' '}
-              {moment(period.end).format('YYYY-MM-DD HH:mm')} ({timezone})
-            </div>
-          )}
-
-          {error && <div className="text-red-500">{error}</div>}
-
-          {/* 商户列表 */}
           {merchantsData.map((merchant, index) => (
             <MerchantCard
               key={index}
@@ -98,61 +153,61 @@ export default function Home() {
               )}
             />
           ))}
-
-          {/* 总收入和明细 */}
-          {Object.keys(totalRevenue).length > 0 && (
-            <div className="bg-white p-4 rounded shadow border-t-4 border-blue-500 space-y-6">
-              <div>
-                <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
-                {Object.entries(totalRevenue).map(([currency, amount]) => (
-                  <div key={currency} className="flex justify-between py-1">
-                    <span>{currency}:</span>
-                    <span>${amount.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
-                <RevenueBreakdownView breakdown={totalBreakdown} />
-              </div>
-            </div>
-          )}
-
-          {/* 每日统计表格 */}
-          {dailyTotals.length > 0 && (
-            <div className="bg-white p-4 rounded shadow mt-6">
-              <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="px-4 py-2 text-left">Date</th>
-                      <th className="px-4 py-2 text-left">Orders</th>
-                      <th className="px-4 py-2 text-left">Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dailyTotals.map((day) => (
-                      <tr key={day.date} className="border-t">
-                        <td className="px-4 py-2">{day.date}</td>
-                        <td className="px-4 py-2">{day.orderCount}</td>
-                        <td className="px-4 py-2">
-                          {Object.entries(day.revenue).map(([currency, amount]) => (
-                            <div key={currency}>
-                              {currency}: ${(amount as number).toFixed(2)}
-                            </div>
-                          ))}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* 总收入和明细 */}
+        {Object.keys(totalRevenue).length > 0 && (
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm space-y-6">
+            <div>
+              <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
+              {Object.entries(totalRevenue).map(([currency, amount]) => (
+                <div key={currency} className="flex justify-between py-1">
+                  <span>{currency}:</span>
+                  <span>${amount.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+              <RevenueBreakdownView breakdown={totalBreakdown} />
+            </div>
+          </div>
+        )}
+
+        {/* 每日统计表格 */}
+        {dailyTotals.length > 0 && (
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+            <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 text-left">Date</th>
+                    <th className="px-4 py-2 text-left">Orders</th>
+                    <th className="px-4 py-2 text-left">Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dailyTotals.map((day) => (
+                    <tr key={day.date} className="border-t">
+                      <td className="px-4 py-2">{day.date}</td>
+                      <td className="px-4 py-2">{day.orderCount}</td>
+                      <td className="px-4 py-2">
+                        {Object.entries(day.revenue).map(([currency, amount]) => (
+                          <div key={currency}>
+                            {currency}: ${(amount as number).toFixed(2)}
+                          </div>
+                        ))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
-    </main>
+    </DashboardLayout>
   );
 }
