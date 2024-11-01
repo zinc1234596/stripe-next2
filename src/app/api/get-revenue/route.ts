@@ -4,7 +4,6 @@ import { getDateRange } from "@/utils/currency";
 import moment from 'moment-timezone';
 
 export async function GET(request: Request) {
-  const startTime = Date.now();
   try {
     const defaultTimezone = process.env.DEFAULT_TIMEZONE || "Asia/Shanghai";
     const { searchParams } = new URL(request.url);
@@ -26,37 +25,26 @@ export async function GET(request: Request) {
     const dateRange = getDateRange(timezone, year, month);
 
     // 并行获取所有数据
-    const merchantsPromises = stripeClients.map(stripe => {
-      // 创建所有请求的 Promise 数组
-      const promises = [
-        getMerchantName(stripe),
-        getCurrentMonthRevenue(stripe, dateRange),
-        getDailyStats(stripe, dateRange, timezone),
-        getRevenueBreakdown(stripe, dateRange)
-      ];
-
-      // 使用 Promise.allSettled 确保即使某个请求失败也不会影响其他请求
-      return Promise.allSettled(promises).then(results => {
-        const [
-          merchantNameResult,
-          revenueResult,
-          dailyStatsResult,
-          revenueBreakdownResult
-        ] = results;
-
-        return {
-          merchantName: merchantNameResult.status === 'fulfilled' ? merchantNameResult.value : 'Unknown',
-          revenue: revenueResult.status === 'fulfilled' ? revenueResult.value : {},
-          dailyStats: dailyStatsResult.status === 'fulfilled' ? dailyStatsResult.value : [],
-          revenueBreakdown: revenueBreakdownResult.status === 'fulfilled' 
-            ? revenueBreakdownResult.value 
-            : { oneTime: {}, subscription: { monthly: {}, annual: {} } }
-        };
-      });
-    });
-
-    // 并行处理所有商户的数据
-    const merchantsData = await Promise.all(merchantsPromises);
+    const merchantsData = await Promise.all(
+      stripeClients.map(async (stripe) => {
+        const [merchantName, revenue, dailyStats, revenueBreakdown] = await Promise.all([
+          getMerchantName(stripe),
+          getCurrentMonthRevenue(stripe, dateRange).catch(err => {
+            console.error(`Error getting revenue for merchant: ${err}`);
+            return {};
+          }),
+          getDailyStats(stripe, dateRange, timezone).catch(err => {
+            console.error(`Error getting daily stats: ${err}`);
+            return [];
+          }),
+          getRevenueBreakdown(stripe, dateRange).catch(err => {
+            console.error(`Error getting revenue breakdown: ${err}`);
+            return { oneTime: {}, subscription: { monthly: {}, annual: {} } };
+          })
+        ]);
+        return { merchantName, revenue, dailyStats, revenueBreakdown };
+      })
+    );
 
     // 计算总收入 - 使用 dailyTotals 来计算，因为它是准确的
     const totalRevenue: Record<string, number> = {};
@@ -84,24 +72,20 @@ export async function GET(request: Request) {
 
     merchantsData.forEach(({ revenueBreakdown }) => {
       // 合并一次性付款
-      // @ts-ignore
       Object.entries(revenueBreakdown.oneTime).forEach(([currency, amount]) => {
-        // @ts-ignore
         totalBreakdown.oneTime[currency] = (totalBreakdown.oneTime[currency] || 0) + amount;
       });
 
       // 合并月付订阅
-      // @ts-ignore
       Object.entries(revenueBreakdown.subscription.monthly).forEach(([currency, amount]) => {
-        // @ts-ignore
-        totalBreakdown.subscription.monthly[currency] = (totalBreakdown.subscription.monthly[currency] || 0) + amount;
+        totalBreakdown.subscription.monthly[currency] = 
+          (totalBreakdown.subscription.monthly[currency] || 0) + amount;
       });
 
       // 合并年付订阅
-      // @ts-ignore
       Object.entries(revenueBreakdown.subscription.annual).forEach(([currency, amount]) => {
-        // @ts-ignore
-        totalBreakdown.subscription.annual[currency] = (totalBreakdown.subscription.annual[currency] || 0) + amount;
+        totalBreakdown.subscription.annual[currency] = 
+          (totalBreakdown.subscription.annual[currency] || 0) + amount;
       });
     });
 
@@ -114,7 +98,6 @@ export async function GET(request: Request) {
       }
     });
 
-    console.log(`API response time: ${Date.now() - startTime}ms`);
     return NextResponse.json({ 
       merchants: merchantsData,
       totalRevenue,
@@ -135,7 +118,7 @@ export async function GET(request: Request) {
   }
 }
 
-function mergeDailyStats(allDailyStats){
+function mergeDailyStats(allDailyStats: any[][]): any[] {
   const mergedStats: Record<string, any> = {};
 
   allDailyStats.forEach(merchantStats => {
