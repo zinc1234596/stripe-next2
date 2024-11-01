@@ -84,6 +84,24 @@ export function getStripeClients(): Stripe[] {
   return stripeClients;
 }
 
+// 添加新的接口定义
+interface TimeSlice {
+  start: number;
+  end: number;
+}
+
+// 添加时间分片函数
+function createTimeSlices(startDate: Date, endDate: Date, sliceCount: number = 4): TimeSlice[] {
+  const totalTime = endDate.getTime() - startDate.getTime();
+  const sliceSize = Math.floor(totalTime / sliceCount);
+  
+  return Array.from({ length: sliceCount }, (_, i) => ({
+    start: Math.floor((startDate.getTime() + (sliceSize * i)) / 1000),
+    end: Math.floor((startDate.getTime() + (sliceSize * (i + 1))) / 1000)
+  }));
+}
+
+// 修改 getDailyStats 函数，支持并行请求
 export async function getDailyStats(
   stripe: Stripe,
   dateRange: DateRange,
@@ -91,7 +109,7 @@ export async function getDailyStats(
 ): Promise<DailyStats[]> {
   const dailyStats: Record<string, DailyStats> = {};
   
-  // 初始化每一天的数据
+  // 初始化每日数据
   const startDate = moment(dateRange.startDate).tz(timezone);
   const endDate = moment(dateRange.endDate).tz(timezone);
   
@@ -104,43 +122,57 @@ export async function getDailyStats(
     };
   }
 
-  let hasMore = true;
-  let startingAfter: string | undefined;
+  // 创建时间分片
+  const timeSlices = createTimeSlices(dateRange.startDate, dateRange.endDate);
+  
+  // 并行请求每个时间分片的数据
+  const slicePromises = timeSlices.map(async (slice) => {
+    const chargesBySlice: Stripe.Charge[] = [];
+    let hasMore = true;
+    let startingAfter: string | undefined;
 
-  while (hasMore) {
-    const charges = await stripe.charges.list({
-      created: {
-        gte: Math.floor(dateRange.startDate.getTime() / 1000),
-        lte: Math.floor(dateRange.endDate.getTime() / 1000),
-      },
-      limit: 100,
-      starting_after: startingAfter,
-    });
+    while (hasMore) {
+      const charges = await stripe.charges.list({
+        created: {
+          gte: slice.start,
+          lte: slice.end,
+        },
+        limit: 100,
+        starting_after: startingAfter,
+      });
 
-    charges.data.forEach((charge) => {
-      if (charge.status === "succeeded" && !charge.refunded) {
-        const chargeDate = moment.unix(charge.created).tz(timezone).format('YYYY-MM-DD');
-        const currency = charge.currency.toUpperCase();
-        const amount = convertToProperUnits(currency, charge.amount);
-
-        if (dailyStats[chargeDate]) {
-          dailyStats[chargeDate].orderCount++;
-          dailyStats[chargeDate].revenue[currency] = 
-            (dailyStats[chargeDate].revenue[currency] || 0) + amount;
-        }
+      chargesBySlice.push(...charges.data);
+      hasMore = charges.has_more;
+      if (hasMore && charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
       }
-    });
-
-    hasMore = charges.has_more;
-    if (hasMore && charges.data.length > 0) {
-      startingAfter = charges.data[charges.data.length - 1].id;
     }
-  }
 
-  // 将对象转换为数组并按日期排序
+    return chargesBySlice;
+  });
+
+  // 等待所有分片数据获取完成
+  const allCharges = (await Promise.all(slicePromises)).flat();
+
+  // 处理获取到的数据
+  allCharges.forEach((charge) => {
+    if (charge.status === "succeeded" && !charge.refunded) {
+      const chargeDate = moment.unix(charge.created).tz(timezone).format('YYYY-MM-DD');
+      const currency = charge.currency.toUpperCase();
+      const amount = convertToProperUnits(currency, charge.amount);
+
+      if (dailyStats[chargeDate]) {
+        dailyStats[chargeDate].orderCount++;
+        dailyStats[chargeDate].revenue[currency] = 
+          (dailyStats[chargeDate].revenue[currency] || 0) + amount;
+      }
+    }
+  });
+
   return Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date));
 }
 
+// 同样修改 getRevenueBreakdown 函数
 export async function getRevenueBreakdown(
   stripe: Stripe,
   dateRange: DateRange
@@ -155,53 +187,71 @@ export async function getRevenueBreakdown(
     }, {} as Record<string, Record<string, number>>)
   };
 
-  let hasMore = true;
-  let startingAfter: string | undefined;
+  const timeSlices = createTimeSlices(dateRange.startDate, dateRange.endDate);
+  
+  const slicePromises = timeSlices.map(async (slice) => {
+    const chargesBySlice: Array<{charge: Stripe.Charge, subscription?: Stripe.Subscription}> = [];
+    let hasMore = true;
+    let startingAfter: string | undefined;
 
-  while (hasMore) {
-    const charges = await stripe.charges.list({
-      created: {
-        gte: Math.floor(dateRange.startDate.getTime() / 1000),
-        lte: Math.floor(dateRange.endDate.getTime() / 1000),
-      },
-      limit: 100,
-      starting_after: startingAfter,
-      expand: ['data.invoice'],
-    });
+    while (hasMore) {
+      const charges = await stripe.charges.list({
+        created: {
+          gte: slice.start,
+          lte: slice.end,
+        },
+        limit: 100,
+        starting_after: startingAfter,
+        expand: ['data.invoice'],
+      });
 
-    for (const charge of charges.data) {
-      if (charge.status !== "succeeded" || charge.refunded) continue;
+      // 并行获取订阅信息
+      const chargesWithSubs = await Promise.all(
+        charges.data.map(async (charge) => {
+          const invoice = charge.invoice as Stripe.Invoice;
+          let subscription: Stripe.Subscription | undefined;
+          
+          if (invoice && invoice.subscription) {
+            subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+          }
+          
+          return { charge, subscription };
+        })
+      );
 
-      const currency = charge.currency.toUpperCase();
-      const amount = convertToProperUnits(currency, charge.amount);
-
-      // 检查是否是订阅付款
-      const invoice = charge.invoice as Stripe.Invoice;
-      if (invoice && invoice.subscription) {
-        // 获取订阅详情
-        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-        const interval = subscription.items.data[0]?.price?.recurring?.interval;
-        const intervalCount = subscription.items.data[0]?.price?.recurring?.interval_count || 1;
-        
-        // 构建完整的 interval 字符串
-        const fullInterval = intervalCount > 1 ? `${intervalCount}-${interval}` : interval;
-        const paymentType = getPaymentTypeByInterval(fullInterval);
-
-        if (paymentType && paymentType.id !== 'oneTime') {
-          breakdown.subscription[paymentType.id][currency] = 
-            (breakdown.subscription[paymentType.id][currency] || 0) + amount;
-        }
-      } else {
-        // 一次性付款
-        breakdown.oneTime[currency] = (breakdown.oneTime[currency] || 0) + amount;
+      chargesBySlice.push(...chargesWithSubs);
+      hasMore = charges.has_more;
+      if (hasMore && charges.data.length > 0) {
+        startingAfter = charges.data[charges.data.length - 1].id;
       }
     }
 
-    hasMore = charges.has_more;
-    if (hasMore && charges.data.length > 0) {
-      startingAfter = charges.data[charges.data.length - 1].id;
+    return chargesBySlice;
+  });
+
+  const allCharges = (await Promise.all(slicePromises)).flat();
+
+  // 处理所有数据
+  allCharges.forEach(({charge, subscription}) => {
+    if (charge.status !== "succeeded" || charge.refunded) return;
+
+    const currency = charge.currency.toUpperCase();
+    const amount = convertToProperUnits(currency, charge.amount);
+
+    if (subscription) {
+      const interval = subscription.items.data[0]?.price?.recurring?.interval;
+      const intervalCount = subscription.items.data[0]?.price?.recurring?.interval_count || 1;
+      const fullInterval = intervalCount > 1 ? `${intervalCount}-${interval}` : interval;
+      const paymentType = getPaymentTypeByInterval(fullInterval);
+
+      if (paymentType && paymentType.id !== 'oneTime') {
+        breakdown.subscription[paymentType.id][currency] = 
+          (breakdown.subscription[paymentType.id][currency] || 0) + amount;
+      }
+    } else {
+      breakdown.oneTime[currency] = (breakdown.oneTime[currency] || 0) + amount;
     }
-  }
+  });
 
   return breakdown;
 }

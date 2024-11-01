@@ -3,6 +3,11 @@ import { getCurrentMonthRevenue, getMerchantName, getStripeClients, getRevenueBr
 import { getDateRange } from "@/utils/currency";
 import moment from 'moment-timezone';
 
+export const maxDuration = 60; // 设置更长的超时时间，单位秒
+
+// 如果使用 Edge Runtime，可以添加：
+export const runtime = 'edge';
+
 export async function GET(request: Request) {
   try {
     const defaultTimezone = process.env.DEFAULT_TIMEZONE || "Asia/Shanghai";
