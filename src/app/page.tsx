@@ -3,7 +3,6 @@ import { useState } from "react";
 import moment from "moment-timezone";
 
 export default function Home() {
-  const [stripeKey, setStripeKey] = useState("");
   const [stats, setStats] = useState<any>({
     revenue: { total: {}, converted: {}, daily: {} },
     payouts: { total: {}, totalInCNY: 0 },
@@ -19,11 +18,6 @@ export default function Home() {
   const [status, setStatus] = useState<string>("");
 
   const fetchRevenue = async () => {
-    if (!stripeKey) {
-      setError("请输入Stripe Key");
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
@@ -39,11 +33,7 @@ export default function Home() {
       });
 
       const response = await fetch("/api/get-revenue", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ stripeKey }),
+        method: "GET",
       });
 
       if (!response.ok) {
@@ -117,14 +107,6 @@ export default function Home() {
         <h1 className="text-2xl font-bold">Stripe 收入统计</h1>
 
         <div className="space-y-4">
-          <input
-            type="password"
-            value={stripeKey}
-            onChange={(e) => setStripeKey(e.target.value)}
-            placeholder="输入你的 Stripe Secret Key"
-            className="w-full p-2 border rounded"
-          />
-
           <button
             onClick={fetchRevenue}
             disabled={loading}

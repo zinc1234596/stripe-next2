@@ -300,12 +300,12 @@ function convertTotalPayoutsToCNY(
   return Number(totalCNY.toFixed(2));
 }
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    const { stripeKey } = await request.json();
+    const stripeKey = process.env.STRIPE_SECRET_KEY;
 
     if (!stripeKey) {
-      return NextResponse.json({ message: "缺少 Stripe Key" }, { status: 400 });
+      return NextResponse.json({ message: "未配置 Stripe Key" }, { status: 400 });
     }
 
     // 创建一个 TransformStream 用于流式传输
