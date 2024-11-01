@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import moment from "moment-timezone";
+import { PAYMENT_TYPES, PaymentType } from "@/config/paymentTypes";
 
 interface MerchantRevenue {
   merchantName: string;
@@ -43,6 +44,29 @@ export default function Home() {
 
   // 添加展开/折叠状态
   const [expandedMerchant, setExpandedMerchant] = useState<string | null>(null);
+
+  // 添加支付类型选择状态
+  const [selectedPaymentTypes, setSelectedPaymentTypes] = useState<Set<string>>(
+    new Set([PAYMENT_TYPES[0].id])
+  );
+
+  // 验证是否至少选择了一个支付类型
+  const isValidSelection = selectedPaymentTypes.size > 0;
+
+  // 处理支付类型选择
+  const handlePaymentTypeChange = (typeId: string) => {
+    setSelectedPaymentTypes(prev => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(typeId)) {
+        if (newSelection.size > 1) {
+          newSelection.delete(typeId);
+        }
+      } else {
+        newSelection.add(typeId);
+      }
+      return newSelection;
+    });
+  };
 
   const fetchRevenue = async () => {
     try {
@@ -95,33 +119,50 @@ export default function Home() {
   const renderRevenueBreakdown = (breakdown: RevenueBreakdown) => (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">One-Time Payments</h3>
-          {Object.entries(breakdown.oneTime).map(([currency, amount]) => (
-            <div key={currency} className="flex justify-between py-1">
-              <span>{currency}:</span>
-              <span>${amount.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">Monthly Subscriptions</h3>
-          {Object.entries(breakdown.subscription.monthly).map(([currency, amount]) => (
-            <div key={currency} className="flex justify-between py-1">
-              <span>{currency}:</span>
-              <span>${amount.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">Annual Subscriptions</h3>
-          {Object.entries(breakdown.subscription.annual).map(([currency, amount]) => (
-            <div key={currency} className="flex justify-between py-1">
-              <span>{currency}:</span>
-              <span>${amount.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
+        {selectedPaymentTypes.has('oneTime') && (
+          <div className="bg-white p-4 rounded shadow">
+            <h3 className="font-semibold mb-2">One-Time Payments</h3>
+            {Object.entries(breakdown.oneTime).map(([currency, amount]) => (
+              <div key={currency} className="flex justify-between py-1">
+                <span>{currency}:</span>
+                <span>${amount.toFixed(2)}</span>
+              </div>
+            ))}
+            {Object.keys(breakdown.oneTime).length === 0 && (
+              <div className="text-gray-500">No one-time payments</div>
+            )}
+          </div>
+        )}
+        
+        {selectedPaymentTypes.has('monthly') && (
+          <div className="bg-white p-4 rounded shadow">
+            <h3 className="font-semibold mb-2">Monthly Subscriptions</h3>
+            {Object.entries(breakdown.subscription.monthly).map(([currency, amount]) => (
+              <div key={currency} className="flex justify-between py-1">
+                <span>{currency}:</span>
+                <span>${amount.toFixed(2)}</span>
+              </div>
+            ))}
+            {Object.keys(breakdown.subscription.monthly).length === 0 && (
+              <div className="text-gray-500">No monthly subscriptions</div>
+            )}
+          </div>
+        )}
+        
+        {selectedPaymentTypes.has('annual') && (
+          <div className="bg-white p-4 rounded shadow">
+            <h3 className="font-semibold mb-2">Annual Subscriptions</h3>
+            {Object.entries(breakdown.subscription.annual).map(([currency, amount]) => (
+              <div key={currency} className="flex justify-between py-1">
+                <span>{currency}:</span>
+                <span>${amount.toFixed(2)}</span>
+              </div>
+            ))}
+            {Object.keys(breakdown.subscription.annual).length === 0 && (
+              <div className="text-gray-500">No annual subscriptions</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -132,6 +173,31 @@ export default function Home() {
         <h1 className="text-2xl font-bold">Revenue Analytics</h1>
 
         <div className="space-y-4">
+          {/* 添加支付类型选择 */}
+          <div className="bg-white p-4 rounded shadow">
+            <h2 className="text-lg font-semibold mb-3">Payment Types</h2>
+            <div className="flex flex-wrap gap-3">
+              {PAYMENT_TYPES.map((type) => (
+                <label
+                  key={type.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedPaymentTypes.has(type.id)}
+                    onChange={() => handlePaymentTypeChange(type.id)}
+                    className="form-checkbox h-5 w-5 text-blue-500"
+                  />
+                  <div>
+                    <div className="font-medium">{type.name}</div>
+                    <div className="text-sm text-gray-500">{type.description}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* 时区和日期选择 */}
           <div className="flex items-center space-x-4 flex-wrap gap-2">
             {/* 时区选择 */}
             <select
@@ -322,23 +388,33 @@ export default function Home() {
                 <div className="mt-4 p-4 bg-gray-50 rounded">
                   <h4 className="font-semibold mb-2">Revenue Distribution</h4>
                   {Object.entries(totalRevenue).map(([currency, totalAmount]) => {
-                    const oneTime = totalBreakdown.oneTime[currency] || 0;
-                    const monthly = totalBreakdown.subscription.monthly[currency] || 0;
-                    const annual = totalBreakdown.subscription.annual[currency] || 0;
+                    const selectedAmounts = {
+                      oneTime: selectedPaymentTypes.has('oneTime') ? totalBreakdown.oneTime[currency] || 0 : 0,
+                      monthly: selectedPaymentTypes.has('monthly') ? totalBreakdown.subscription.monthly[currency] || 0 : 0,
+                      annual: selectedPaymentTypes.has('annual') ? totalBreakdown.subscription.annual[currency] || 0 : 0,
+                    };
+
+                    const selectedTotal = Object.values(selectedAmounts).reduce((a, b) => a + b, 0);
 
                     return (
                       <div key={currency} className="mb-3">
                         <div className="font-medium">{currency}</div>
                         <div className="grid grid-cols-3 gap-2 text-sm">
-                          <div>
-                            One-Time: {((oneTime / totalAmount) * 100).toFixed(1)}%
-                          </div>
-                          <div>
-                            Monthly: {((monthly / totalAmount) * 100).toFixed(1)}%
-                          </div>
-                          <div>
-                            Annual: {((annual / totalAmount) * 100).toFixed(1)}%
-                          </div>
+                          {selectedPaymentTypes.has('oneTime') && (
+                            <div>
+                              One-Time: {((selectedAmounts.oneTime / selectedTotal) * 100).toFixed(1)}%
+                            </div>
+                          )}
+                          {selectedPaymentTypes.has('monthly') && (
+                            <div>
+                              Monthly: {((selectedAmounts.monthly / selectedTotal) * 100).toFixed(1)}%
+                            </div>
+                          )}
+                          {selectedPaymentTypes.has('annual') && (
+                            <div>
+                              Annual: {((selectedAmounts.annual / selectedTotal) * 100).toFixed(1)}%
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
