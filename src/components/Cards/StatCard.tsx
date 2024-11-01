@@ -13,9 +13,10 @@ interface StatCardProps {
     isPositive: boolean;
   };
   color?: CardColor;
+  valueClassName?: string;
 }
 
-export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }: StatCardProps) {
+export function StatCard({ title, value, icon, subtext, trend, color = 'gray', valueClassName }: StatCardProps) {
   const colorStyles = {
     blue: {
       background: 'bg-gradient-to-br from-blue-50 to-blue-100/50',
@@ -49,8 +50,8 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }:
     },
     gray: {
       background: 'bg-gradient-to-br from-gray-50 to-gray-100/50',
-      icon: 'bg-gray-500/10 text-gray-600',
-      text: 'text-gray-600',
+      icon: 'bg-gray-500/10 text-gray-700',
+      text: 'text-gray-700',
     },
   };
 
@@ -63,7 +64,9 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }:
         </div>
       </div>
       <div className="mt-4">
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
+        <div className={`text-2xl font-bold ${valueClassName || colorStyles[color].text}`}>
+          {value}
+        </div>
         {subtext && (
           <div className="text-sm mt-1 text-gray-500">
             {subtext}

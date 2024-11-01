@@ -240,7 +240,7 @@ export default function Home() {
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* 统计卡片 - 使用简化的配色方案 */}
+        {/* 统计卡片 */}
         {Object.keys(convertedTotalRevenue).length > 0 && dailyTotals.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <StatCard
@@ -276,6 +276,7 @@ export default function Home() {
               subtext={highestDay ? moment(highestDay.date).format('MMM D, YYYY') : ''}
               icon={<TrophyIcon className="h-6 w-6" />}
               color="gray"
+              valueClassName="text-red-800"
             />
           </div>
         )}
