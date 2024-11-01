@@ -1,0 +1,11 @@
+name = "stripe-revenue-dashboard"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm run build"
+
+[site]
+bucket = ".next"
+
+[env.production]
+vars = { STRIPE_SECRET_KEY = "", DEFAULT_TIMEZONE = "Asia/Shanghai" }

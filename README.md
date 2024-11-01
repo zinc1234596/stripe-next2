@@ -1,49 +1,110 @@
 # Stripe Revenue Dashboard
 
-[English](./README_EN.md) | 简体中文
-
-一个使用 Next.js 14、TypeScript 和 Tailwind CSS 构建的现代化实时收入分析仪表板。
-
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Next.js](https://img.shields.io/badge/Next.js-14.2.5-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38bdf8)
-
-[![Deploy to Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/zinc1234596/stripe-revenue-dashboard/tree/main)
+一个基于 Next.js 构建的 Stripe 收入仪表板，部署在 Cloudflare Pages 上。
 
 ## 功能特点
 
-- 📊 实时收入跟踪和分析
-- 💰 多币种支持，自动转换
-- 📅 灵活的日期范围选择
-- 🌍 多时区支持
-- 📈 交互式图表和数据可视化
-- 💳 支付类型分析（一次性支付 vs 订阅）
-- 📱 响应式设计，支持所有设备
-- 🔄 实时数据更新
-- 🎨 使用 Tailwind CSS 的清新现代界面
-- 🚀 一键部署支持
+- 📊 实时显示 Stripe 收入数据
+- 🌍 支持多时区显示（默认：Asia/Shanghai）
+- 💫 基于 Next.js 构建的现代化 UI
+- ⚡ 通过 Cloudflare Pages 实现快速全球访问
 
-## 快速部署
+## 技术栈
 
-### 方法 1：一键部署到 Cloudflare Pages
+- Next.js 14
+- TypeScript
+- Cloudflare Pages
+- Stripe API
+- TailwindCSS
 
-1. 点击上方的 "Deploy to Cloudflare Pages" 按钮
-2. 登录你的 Cloudflare 账号
-3. 设置以下环境变量：
-   - `STRIPE_SECRET_KEY`: 你的 Stripe Secret Key (以 sk_test_ 或 sk_live_ 开头)
-   - `DEFAULT_TIMEZONE`: 默认时区 (可选，默认为 "Asia/Shanghai")
+## 开始使用
 
-### 方法 2：手动部署
+### 前置要求
+
+- Node.js 18+
+- npm 或 yarn
+- Stripe 账户
+- Cloudflare 账户
+
+### 本地开发
+
+1. 克隆仓库
+   ```bash
+   git clone https://github.com/your-username/stripe-revenue-dashboard.git
+   cd stripe-revenue-dashboard
+   ```
+
+2. 安装依赖
+   ```bash
+   npm install
+   ```
+
+3. 配置环境变量
+   ```bash
+   cp .env.example .env.local
+   ```
+   编辑 `.env.local` 文件，填入你的 Stripe Secret Key。
+
+4. 启动开发服务器
+   ```bash
+   npm run dev
+   ```
+
+### 部署
 
 1. Fork 这个仓库
-2. 登录 [Cloudflare Pages](https://pages.cloudflare.com)
-3. 创建新项目并选择你 fork 的仓库
-4. 设置构建配置：
+
+2. 在 Cloudflare Pages 中创建新项目
+
+3. 连接你的 GitHub 仓库
+
+4. 配置构建设置：
    - 构建命令：`npm run build`
    - 构建输出目录：`.next`
-5. 设置环境变量：
-   - `STRIPE_SECRET_KEY`: 你的 Stripe Secret Key
-   - `DEFAULT_TIMEZONE`: 默认时区 (可选)
 
-## 本地开发
+5. 在环境变量中添加：
+   - `STRIPE_SECRET_KEY`
+   - `DEFAULT_TIMEZONE`（可选，默认为 "Asia/Shanghai"）
+
+## 环境变量
+
+| 变量名 | 描述 | 必填 |
+|--------|------|------|
+| STRIPE_SECRET_KEY | Stripe API 密钥 | 是 |
+| DEFAULT_TIMEZONE | 默认时区 | 否 |
+
+## 开发指南
+
+### 项目结构
+
+```
+src/
+├── app/ # Next.js 应用目录
+│ ├── api/ # API 路由
+│ └── page.tsx # 主页面
+├── config/ # 配置文件
+│ └── services/ # 服务层（Stripe API 等）
+├── types/ # TypeScript 类型定义
+├── utils/ # 工具函数
+└── package.json # 项目配置文件
+```
+
+### API 端点
+
+- `GET /api/get-revenue` - 获取收入数据
+
+## 贡献指南
+
+1. Fork 项目
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 许可证
+
+MIT License - 查看 [LICENSE](LICENSE) 文件了解详情
+
+## 支持
+
+如有问题或建议，请开启 Issue 或发起讨论。
