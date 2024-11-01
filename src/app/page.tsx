@@ -107,30 +107,34 @@ export default function Home() {
     <DashboardLayout>
       <h1 className="text-2xl font-bold mb-6">Revenue Analytics</h1>
 
-      <div className="space-y-6">
-        <DateTimeSelector
-          timezone={timezone}
-          selectedYear={selectedYear}
-          selectedMonth={selectedMonth}
-          onTimezoneChange={setTimezone}
-          onYearChange={setSelectedYear}
-          onMonthChange={setSelectedMonth}
-          loading={loading}
-          onFetch={fetchRevenue}
-        />
-
-        {period && (
-          <div className="text-sm text-gray-600">
-            Period: {moment(period.start).format('YYYY-MM-DD HH:mm')} to{' '}
-            {moment(period.end).format('YYYY-MM-DD HH:mm')} ({timezone})
+      <div className="space-y-4 md:space-y-6">
+        {/* 参数选择区域 - 移动端优化 */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-sm">
+          <div className="p-4">
+            <DateTimeSelector
+              timezone={timezone}
+              selectedYear={selectedYear}
+              selectedMonth={selectedMonth}
+              onTimezoneChange={setTimezone}
+              onYearChange={setSelectedYear}
+              onMonthChange={setSelectedMonth}
+              loading={loading}
+              onFetch={fetchRevenue}
+            />
           </div>
-        )}
+          {period && (
+            <div className="border-t px-4 py-3 text-sm text-gray-600 bg-gray-50/50">
+              Period: {moment(period.start).format('YYYY-MM-DD HH:mm')} to{' '}
+              {moment(period.end).format('YYYY-MM-DD HH:mm')} ({timezone})
+            </div>
+          )}
+        </div>
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* 统计卡片 */}
+        {/* 统计卡片 - 移动端两列 */}
         {Object.keys(totalRevenue).length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
               value={`$${Object.values(totalRevenue)[0].toFixed(2)}`}
@@ -154,11 +158,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* 总体数据分析区域 */}
+        {/* 总体数据分析区域 - 移动端垂直堆叠 */}
         {(dailyTotals.length > 0 || Object.keys(totalRevenue).length > 0) && (
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
             {/* 数据视图（图表/表格） */}
-            <div className="col-span-8 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+            <div className="lg:col-span-12 xl:col-span-8 bg-white/80 backdrop-blur-lg rounded-xl p-4 md:p-6 shadow-sm">
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center">
                   {overviewMode === 'chart' ? (
@@ -217,7 +221,7 @@ export default function Home() {
             </div>
 
             {/* Revenue Breakdown */}
-            <div className="col-span-4 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+            <div className="lg:col-span-12 xl:col-span-4 bg-white/80 backdrop-blur-lg rounded-xl p-4 md:p-6 shadow-sm">
               <div className="flex items-center border-b pb-4">
                 <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <h2 className="text-xl font-bold">Revenue Breakdown</h2>
@@ -232,7 +236,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* 商户列表 */}
+        {/* 商户列表 - 移动端单列 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {merchantsData.map((merchant, index) => (
             <MerchantCard
