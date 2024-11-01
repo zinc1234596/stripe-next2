@@ -242,24 +242,27 @@ export default function Home() {
 
         {/* 统计卡片 */}
         {Object.keys(convertedTotalRevenue).length > 0 && dailyTotals.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-5 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
               value={formatCurrency(Object.values(convertedTotalRevenue)[0], targetCurrency)}
               icon={<BanknotesIcon className="h-6 w-6" />}
               color="indigo"
+              size="default"
             />
             <StatCard
               title="Total Orders"
               value={getTotalOrders()}
-              icon={<CreditCardIcon className="h-6 w-6" />}
+              icon={<CreditCardIcon className="h-5 w-5" />}
               color="gray"
+              size="small"
             />
             <StatCard
               title="Active Merchants"
               value={merchantsData.length}
-              icon={<UserGroupIcon className="h-6 w-6" />}
+              icon={<UserGroupIcon className="h-5 w-5" />}
               color="gray"
+              size="small"
             />
             <StatCard
               title="Average Order Value"
@@ -267,16 +270,18 @@ export default function Home() {
                 Object.values(convertedTotalRevenue)[0] / getTotalOrders(),
                 targetCurrency
               )}
-              icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
+              icon={<ArrowTrendingUpIcon className="h-5 w-5" />}
               color="gray"
+              size="small"
             />
             <StatCard
               title="Highest Daily Revenue"
               value={formatCurrency(highestDayTotal, targetCurrency)}
               subtext={highestDay ? moment(highestDay.date).format('MMM D, YYYY') : ''}
-              icon={<TrophyIcon className="h-6 w-6" />}
+              icon={<TrophyIcon className="h-5 w-5" />}
               color="gray"
               valueClassName="text-red-800"
+              size="small"
             />
           </div>
         )}

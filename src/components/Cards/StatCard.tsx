@@ -3,6 +3,9 @@ import { ReactNode } from 'react';
 // Add type for valid colors
 type CardColor = 'blue' | 'purple' | 'pink' | 'orange' | 'green' | 'indigo' | 'gray';
 
+// Add size type
+type CardSize = 'small' | 'default' | 'large';
+
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -14,9 +17,10 @@ interface StatCardProps {
   };
   color?: CardColor;
   valueClassName?: string;
+  size?: CardSize;
 }
 
-export function StatCard({ title, value, icon, subtext, trend, color = 'gray', valueClassName }: StatCardProps) {
+export function StatCard({ title, value, icon, subtext, trend, color = 'gray', valueClassName, size = 'default' }: StatCardProps) {
   const colorStyles = {
     blue: {
       background: 'bg-gradient-to-br from-blue-50 to-blue-100/50',
@@ -55,25 +59,52 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'gray', v
     },
   };
 
+  const sizeStyles = {
+    small: {
+      padding: 'p-4',
+      title: 'text-xs',
+      value: 'text-lg',
+      iconWrapper: 'p-2',
+    },
+    default: {
+      padding: 'p-5',
+      title: 'text-sm',
+      value: 'text-xl',
+      iconWrapper: 'p-2.5',
+    },
+    large: {
+      padding: 'p-6',
+      title: 'text-base',
+      value: 'text-2xl',
+      iconWrapper: 'p-3',
+    },
+  };
+
   return (
-    <div className={`backdrop-blur-lg rounded-xl p-6 shadow-sm hover:shadow-md transition-all ${colorStyles[color].background}`}>
+    <div className={`
+      backdrop-blur-lg rounded-xl shadow-sm hover:shadow-md transition-all 
+      ${colorStyles[color].background}
+      ${sizeStyles[size].padding}
+    `}>
       <div className="flex items-center justify-between">
-        <div className="text-gray-600 font-medium">{title}</div>
-        <div className={`p-3 rounded-xl ${colorStyles[color].icon}`}>
+        <div className={`text-gray-600 font-medium ${sizeStyles[size].title}`}>
+          {title}
+        </div>
+        <div className={`rounded-xl ${colorStyles[color].icon} ${sizeStyles[size].iconWrapper}`}>
           {icon}
         </div>
       </div>
-      <div className="mt-4">
-        <div className={`text-2xl font-bold ${valueClassName || colorStyles[color].text}`}>
+      <div className="mt-2">
+        <div className={`font-bold ${valueClassName || colorStyles[color].text} ${sizeStyles[size].value}`}>
           {value}
         </div>
         {subtext && (
-          <div className="text-sm mt-1 text-gray-500">
+          <div className="text-xs mt-0.5 text-gray-500">
             {subtext}
           </div>
         )}
         {trend && (
-          <div className={`text-sm mt-2 flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <div className={`text-xs mt-1 flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             <span className="text-xs text-gray-500">vs last month</span>
           </div>
