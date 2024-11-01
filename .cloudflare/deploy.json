@@ -1,0 +1,19 @@
+{
+  "name": "stripe-revenue-dashboard",
+  "build": {
+    "command": "npm run build",
+    "directory": ".next",
+    "environment": {
+      "NODE_VERSION": "18"
+    }
+  },
+  "env": {
+    "STRIPE_SECRET_KEY": {
+      "description": "Your Stripe Secret Key"
+    },
+    "DEFAULT_TIMEZONE": {
+      "description": "Default timezone (e.g., Asia/Shanghai)",
+      "default": "Asia/Shanghai"
+    }
+  }
+}

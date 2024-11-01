@@ -1,34 +1,41 @@
 # Stripe Revenue Dashboard
 
-A modern, real-time revenue analytics dashboard for Stripe merchants built with Next.js 14, TypeScript, and Tailwind CSS.
+[English](./README_EN.md) | 简体中文
+
+一个使用 Next.js 14、TypeScript 和 Tailwind CSS 构建的现代化实时收入分析仪表板。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-14.2.5-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38bdf8)
 
-## Features
+## 功能特点
 
-- 📊 Real-time revenue tracking and analytics
-- 💰 Multi-currency support with automatic conversion
-- 📅 Flexible date range selection
-- 🌍 Multiple timezone support
-- 📈 Interactive charts and data visualization
-- 💳 Payment type breakdown (one-time vs subscription)
-- 📱 Responsive design for all devices
-- 🔄 Real-time data updates
-- 🎨 Clean and modern UI with Tailwind CSS
+- 📊 实时收入跟踪和分析
+- 💰 多币种支持，自动转换
+- 📅 灵活的日期范围选择
+- 🌍 多时区支持
+- 📈 交互式图表和数据可视化
+- 💳 支付类型分析（一次性支付 vs 订阅）
+- 📱 响应式设计，支持所有设备
+- 🔄 实时数据更新
+- 🎨 使用 Tailwind CSS 的清新现代界面
+- 🚀 一键部署支持
 
-## Prerequisites
+## 快速部署
 
-Before you begin, ensure you have the following installed:
-- Node.js (v18 or higher)
-- npm or yarn
-- Stripe account with API keys
+[![部署到 Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yourusername/stripe-revenue-dashboard)
 
-## Installation
+## 环境要求
 
-1. Clone the repository:
+在开始之前，请确保已安装以下工具：
+- Node.js (v18 或更高版本)
+- npm 或 yarn
+- Stripe 账户和 API 密钥
+
+## 安装步骤
+
+1. 克隆仓库：
 ```bash
 git clone https://github.com/yourusername/stripe-revenue-dashboard.git
 cd stripe-revenue-dashboard
