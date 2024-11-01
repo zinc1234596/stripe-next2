@@ -6,9 +6,10 @@ interface RevenueChartProps {
   data: DailyStats[];
   currency: string;
   compact?: boolean;
+  loading?: boolean;
 }
 
-export function RevenueChart({ data, currency, compact = false }: RevenueChartProps) {
+export function RevenueChart({ data, currency, compact = false, loading = false }: RevenueChartProps) {
   const chartData = data.map(day => ({
     date: day.date,
     revenue: day.revenue[currency] || 0,
@@ -38,6 +39,20 @@ export function RevenueChart({ data, currency, compact = false }: RevenueChartPr
     }
     return ticks;
   };
+
+  if (loading) {
+    return (
+      <div 
+        style={{ width: '100%', height: compact ? 160 : 300 }}
+        className="flex items-center justify-center bg-gray-50 rounded-lg animate-pulse"
+      >
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="mt-2 text-sm text-gray-500">Loading chart data...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: '100%', height: compact ? 160 : 300 }}>

@@ -27,6 +27,7 @@ export function MerchantCard({
   revenueBreakdown,
 }: MerchantCardProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('chart');
+  const [loading, setLoading] = useState(false);
 
   const getPrimaryCurrency = () => {
     return Object.keys(revenue)[0] || 'USD';
@@ -114,6 +115,7 @@ export function MerchantCard({
                   data={dailyStats}
                   currency={getPrimaryCurrency()}
                   compact={true}
+                  loading={loading}
                 />
               </div>
             ) : (

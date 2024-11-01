@@ -211,6 +211,7 @@ export default function Home() {
                   <RevenueChart
                     data={dailyTotals}
                     currency={getPrimaryCurrency()}
+                    loading={loading}
                   />
                 ) : (
                   <div className="overflow-x-auto max-h-[400px]">
