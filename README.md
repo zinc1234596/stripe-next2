@@ -59,11 +59,15 @@
 3. 连接你的 GitHub 仓库
 
 4. 配置构建设置：
-   - 构建命令：`npm run build`
-   - 构建输出目录：`.next`
+   - 框架选择：Next.js
 
 5. 在环境变量中添加：
-   - `STRIPE_SECRET_KEY`
+   - `STRIPE_SECRET_KEY_1`
+   - `STRIPE_SECRET_KEY_2`
+   - `STRIPE_SECRET_KEY_3`
+   - `STRIPE_SECRET_KEY_4`
+   - `STRIPE_SECRET_KEY_5`
+   - `STRIPE_SECRET_KEY_6`
    - `DEFAULT_TIMEZONE`（可选，默认为 "Asia/Shanghai"）
 
 ## 环境变量
