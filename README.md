@@ -24,7 +24,7 @@
 
 ## 快速部署
 
-[![Deploy to Cloudflare Pages](https://imagedelivery.net/PCnTHRkdRb-w6c52FYbPjw/c60ced12-5195-4a25-7e1d-6e68c4f48800/public)](https://dash.cloudflare.com/sign-up?redirect_url=https://dash.cloudflare.com/pages/new/import-git)
+[![部署到 Cloudflare Pages](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/zinc1234596/stripe-revenue-dashboard)
 
 ### 1. 点击部署
 1. 点击上方的"部署到 Cloudflare Pages"按钮
