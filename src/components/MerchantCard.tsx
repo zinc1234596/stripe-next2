@@ -30,24 +30,24 @@ export function MerchantCard({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm space-y-4">
+    <div className="bg-white/80 backdrop-blur-lg rounded-xl p-4 shadow-sm space-y-3">
       {/* 头部信息 */}
-      <div className="flex justify-between items-center border-b pb-4">
-        <h2 className="text-xl font-bold text-gray-900">{merchantName}</h2>
+      <div className="flex justify-between items-center border-b pb-2">
+        <h2 className="text-lg font-bold text-gray-900">{merchantName}</h2>
         <button
           onClick={onToggleExpand}
-          className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-50 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          className="text-sm text-indigo-600 hover:text-indigo-800"
         >
-          {isExpanded ? 'Hide Details' : 'Show Details'}
+          {isExpanded ? 'Hide' : 'Show'}
         </button>
       </div>
 
-      {/* 基础收入信息 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {/* 基础收入信息 - 更紧凑的布局 */}
+      <div className="grid grid-cols-2 gap-2">
         {Object.entries(revenue).map(([currency, amount]) => (
-          <div key={currency} className="bg-gray-50 rounded-lg p-4">
-            <div className="text-sm text-gray-500">{currency} Revenue</div>
-            <div className="text-xl font-semibold text-gray-900">
+          <div key={currency} className="bg-gray-50 rounded p-2">
+            <div className="text-xs text-gray-500">{currency}</div>
+            <div className="text-sm font-semibold text-gray-900">
               ${amount.toFixed(2)}
             </div>
           </div>
@@ -55,69 +55,61 @@ export function MerchantCard({
       </div>
 
       {isExpanded && (
-        <div className="space-y-6">
-          {/* 图表和收入明细并排 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          {/* 图表和收入明细 */}
+          <div className="space-y-3">
             {/* 收入趋势图表 */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <div className="flex items-center p-4 border-b">
-                <ChartBarIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <h3 className="font-semibold text-gray-900">Revenue Trend</h3>
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="flex items-center p-2 border-b">
+                <ChartBarIcon className="h-4 w-4 text-gray-400 mr-1" />
+                <h3 className="text-sm font-semibold text-gray-900">Revenue Trend</h3>
               </div>
-              <div className="p-4">
-                <RevenueChart
-                  data={dailyStats}
-                  currency={getPrimaryCurrency()}
-                />
+              <div className="p-2">
+                <div className="h-[200px]"> {/* 减小图表高度 */}
+                  <RevenueChart
+                    data={dailyStats}
+                    currency={getPrimaryCurrency()}
+                  />
+                </div>
               </div>
             </div>
 
             {/* 收入明细 */}
-            <div className="bg-white rounded-xl shadow-sm">
-              <div className="flex items-center p-4 border-b">
-                <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <h3 className="font-semibold text-gray-900">Revenue Breakdown</h3>
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="flex items-center p-2 border-b">
+                <ChartPieIcon className="h-4 w-4 text-gray-400 mr-1" />
+                <h3 className="text-sm font-semibold text-gray-900">Revenue Breakdown</h3>
               </div>
-              <div className="p-4">
+              <div className="p-2">
                 <RevenueBreakdownView breakdown={revenueBreakdown} />
               </div>
             </div>
           </div>
 
-          {/* 每日统计表格 */}
-          <div className="bg-white rounded-xl shadow-sm">
-            <div className="flex items-center p-4 border-b">
-              <TableCellsIcon className="h-5 w-5 text-gray-400 mr-2" />
-              <h3 className="font-semibold text-gray-900">Daily Statistics</h3>
+          {/* 每日统计表格 - 使用更紧凑的表格样式 */}
+          <div className="bg-white rounded-lg shadow-sm">
+            <div className="flex items-center p-2 border-b">
+              <TableCellsIcon className="h-4 w-4 text-gray-400 mr-1" />
+              <h3 className="text-sm font-semibold text-gray-900">Daily Stats</h3>
             </div>
-            <div className="p-4">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Date
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Orders
-                      </th>
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Revenue
-                      </th>
+            <div className="p-2">
+              <div className="overflow-x-auto max-h-[200px]"> {/* 限制表格高度并添加滚动 */}
+                <table className="min-w-full text-xs">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 py-1 text-left">Date</th>
+                      <th className="px-2 py-1 text-left">Orders</th>
+                      <th className="px-2 py-1 text-left">Revenue</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="divide-y divide-gray-100">
                     {dailyStats.map((day) => (
                       <tr key={day.date} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {day.date}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
-                          {day.orderCount}
-                        </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-2 py-1">{day.date}</td>
+                        <td className="px-2 py-1">{day.orderCount}</td>
+                        <td className="px-2 py-1">
                           {Object.entries(day.revenue).map(([currency, amount]) => (
-                            <div key={currency}>
+                            <div key={currency} className="whitespace-nowrap">
                               {currency}: ${(amount as number).toFixed(2)}
                             </div>
                           ))}

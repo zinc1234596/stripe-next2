@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import moment from "moment-timezone";
 import { DateTimeSelector } from "@/components/DateTimeSelector";
 import { MerchantCard } from "@/components/MerchantCard";
@@ -38,7 +38,25 @@ export default function Home() {
   const now = moment().tz(timezone);
   const [selectedYear, setSelectedYear] = useState(now.year());
   const [selectedMonth, setSelectedMonth] = useState(now.month());
-  const [expandedMerchant, setExpandedMerchant] = useState<string | null>(null);
+  const [expandedMerchants, setExpandedMerchants] = useState<Set<string>>(
+    new Set(merchantsData.map(m => m.merchantName))
+  );
+
+  useEffect(() => {
+    setExpandedMerchants(new Set(merchantsData.map(m => m.merchantName)));
+  }, [merchantsData]);
+
+  const handleToggleExpand = (merchantName: string) => {
+    setExpandedMerchants(prev => {
+      const next = new Set(prev);
+      if (next.has(merchantName)) {
+        next.delete(merchantName);
+      } else {
+        next.add(merchantName);
+      }
+      return next;
+    });
+  };
 
   const fetchRevenue = async () => {
     try {
@@ -142,15 +160,13 @@ export default function Home() {
         )}
 
         {/* 商户列表 */}
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {merchantsData.map((merchant, index) => (
             <MerchantCard
               key={index}
               {...merchant}
-              isExpanded={expandedMerchant === merchant.merchantName}
-              onToggleExpand={() => setExpandedMerchant(
-                expandedMerchant === merchant.merchantName ? null : merchant.merchantName
-              )}
+              isExpanded={expandedMerchants.has(merchant.merchantName)}
+              onToggleExpand={() => handleToggleExpand(merchant.merchantName)}
             />
           ))}
         </div>
