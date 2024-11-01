@@ -177,8 +177,8 @@ export default function Home() {
               rounded-full
               transition-all duration-200
               ${isPrivate 
-                ? 'bg-indigo-100 text-indigo-600' 
-                : 'bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600'
+                ? 'bg-purple-100 text-purple-600' 
+                : 'bg-purple-50 text-purple-400 hover:bg-purple-100 hover:text-purple-600'
               }
             `}
             title={isPrivate ? "显示商户名称" : "隐藏商户名称"}
