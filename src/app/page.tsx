@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import moment from "moment-timezone";
 import { DateTimeSelector } from "@/components/DateTimeSelector";
 import { MerchantCard } from "@/components/MerchantCard";
@@ -19,6 +19,8 @@ import {
   ArrowPathIcon,
   TrophyIcon
 } from '@heroicons/react/24/outline';
+import { fetchExchangeRates, convertRevenue, mergeAndConvertRevenues } from "@/utils/currency";
+import { formatCurrency } from '@/utils/currencySymbols';
 
 interface MerchantRevenue {
   merchantName: string;
@@ -47,6 +49,44 @@ export default function Home() {
     new Set(merchantsData.map(m => m.merchantName))
   );
   const [overviewMode, setOverviewMode] = useState<'chart' | 'table'>('chart');
+  const [targetCurrency, setTargetCurrency] = useState('USD');
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
+
+  // 支持的货币列表
+  const supportedCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'HKD'];
+
+  // 获取汇率数据
+  useEffect(() => {
+    fetchExchangeRates(targetCurrency).then(setExchangeRates);
+  }, [targetCurrency]);
+
+  // 转换收入数据
+  const convertedTotalRevenue = useMemo(() => {
+    if (!Object.keys(exchangeRates).length) return totalRevenue;
+    return convertRevenue(totalRevenue, targetCurrency, exchangeRates);
+  }, [totalRevenue, targetCurrency, exchangeRates]);
+
+  // 转换每个商户的收入数据
+  const convertedMerchantsData = useMemo(() => {
+    if (!Object.keys(exchangeRates).length) return merchantsData;
+    return merchantsData.map(merchant => ({
+      ...merchant,
+      revenue: convertRevenue(merchant.revenue, targetCurrency, exchangeRates),
+      dailyStats: merchant.dailyStats.map(day => ({
+        ...day,
+        revenue: convertRevenue(day.revenue, targetCurrency, exchangeRates),
+      })),
+    }));
+  }, [merchantsData, targetCurrency, exchangeRates]);
+
+  // 转换每日总收入数据
+  const convertedDailyTotals = useMemo(() => {
+    if (!Object.keys(exchangeRates).length) return dailyTotals;
+    return dailyTotals.map(day => ({
+      ...day,
+      revenue: convertRevenue(day.revenue, targetCurrency, exchangeRates),
+    }));
+  }, [dailyTotals, targetCurrency, exchangeRates]);
 
   useEffect(() => {
     setExpandedMerchants(new Set(merchantsData.map(m => m.merchantName)));
@@ -124,7 +164,19 @@ export default function Home() {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Revenue Analytics</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Revenue Analytics</h1>
+          {/* 添加货币选择器 */}
+          <select
+            value={targetCurrency}
+            onChange={(e) => setTargetCurrency(e.target.value)}
+            className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {supportedCurrencies.map(currency => (
+              <option key={currency} value={currency}>{currency}</option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={fetchRevenue}
           disabled={loading}
@@ -174,11 +226,11 @@ export default function Home() {
         {error && <div className="text-red-500">{error}</div>}
 
         {/* 统计卡片 - 使用不同颜色 */}
-        {Object.keys(totalRevenue).length > 0 && (
+        {Object.keys(convertedTotalRevenue).length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
-              value={`$${Object.values(totalRevenue)[0].toFixed(2)}`}
+              value={formatCurrency(Object.values(convertedTotalRevenue)[0], targetCurrency)}
               icon={<BanknotesIcon className="h-6 w-6" />}
               color="blue"
             />
@@ -196,13 +248,16 @@ export default function Home() {
             />
             <StatCard
               title="Average Order Value"
-              value={`$${(Object.values(totalRevenue)[0] / getTotalOrders()).toFixed(2)}`}
+              value={formatCurrency(
+                Object.values(convertedTotalRevenue)[0] / getTotalOrders(),
+                targetCurrency
+              )}
               icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
               color="orange"
             />
             <StatCard
               title="Highest Daily Revenue"
-              value={`$${highestDayTotal.toFixed(2)}`}
+              value={formatCurrency(highestDayTotal, targetCurrency)}
               subtext={highestDay ? moment(highestDay.date).format('MMM D, YYYY') : ''}
               icon={<TrophyIcon className="h-6 w-6" />}
               color="green"
@@ -238,7 +293,7 @@ export default function Home() {
               <div className="mt-4">
                 {overviewMode === 'chart' ? (
                   <RevenueChart
-                    data={dailyTotals}
+                    data={convertedDailyTotals}
                     currency={getPrimaryCurrency()}
                     loading={loading}
                   />
@@ -253,7 +308,7 @@ export default function Home() {
                         </tr>
                       </thead>
                       <tbody>
-                        {dailyTotals.map((day) => (
+                        {convertedDailyTotals.map((day) => (
                           <tr key={day.date} className="border-t hover:bg-gray-50">
                             <td className="px-4 py-2">{day.date}</td>
                             <td className="px-4 py-2">{day.orderCount}</td>
@@ -291,7 +346,7 @@ export default function Home() {
 
         {/* 商户列表 - 移动端单列 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {merchantsData.map((merchant, index) => (
+          {convertedMerchantsData.map((merchant, index) => (
             <MerchantCard
               key={index}
               {...merchant}

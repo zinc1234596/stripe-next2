@@ -1,6 +1,7 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DailyStats } from '@/services/stripe';
 import moment from 'moment';
+import { formatCurrency } from '@/utils/currencySymbols';
 
 interface RevenueChartProps {
   data: DailyStats[];
@@ -12,7 +13,12 @@ interface RevenueChartProps {
 export function RevenueChart({ data, currency, compact = false, loading = false }: RevenueChartProps) {
   const chartData = data.map(day => ({
     date: day.date,
-    revenue: day.revenue[currency] || 0,
+    revenue: Object.entries(day.revenue).reduce((total, [curr, amount]) => {
+      if (currency) {
+        return curr === currency ? amount : total;
+      }
+      return total + amount;
+    }, 0),
     displayDate: moment(day.date).format('DD')
   }));
 
@@ -89,7 +95,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               fontSize: compact ? '12px' : '14px',
               padding: '8px 12px',
             }}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+            formatter={(value: number) => [formatCurrency(value, currency), 'Revenue']}
             labelFormatter={(label) => `Day ${label}`}
           />
           <Area
