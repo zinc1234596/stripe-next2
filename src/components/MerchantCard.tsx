@@ -83,7 +83,7 @@ export function MerchantCard({
               </div>
               <div className="p-2">
                 {viewMode === 'chart' ? (
-                  <div className="h-[200px]">
+                  <div className="h-40">
                     <RevenueChart
                       data={dailyStats}
                       currency={getPrimaryCurrency()}
@@ -190,7 +190,7 @@ export function MerchantCard({
             </div>
             <div className="p-2">
               {viewMode === 'chart' ? (
-                <div className="h-[200px]">
+                <div className="h-40">
                   <RevenueChart
                     data={dailyStats}
                     currency={getPrimaryCurrency()}

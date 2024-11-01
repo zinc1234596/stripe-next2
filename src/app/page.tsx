@@ -149,13 +149,54 @@ export default function Home() {
           </div>
         )}
 
-        {/* 收入趋势图表 */}
-        {dailyTotals.length > 0 && (
-          <div className="grid grid-cols-1 gap-4">
-            <RevenueChart
-              data={dailyTotals}
-              currency={getPrimaryCurrency()}
-            />
+        {/* 总体数据分析区域 */}
+        {(dailyTotals.length > 0 || Object.keys(totalRevenue).length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 收入趋势图表 */}
+            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold mb-4">Revenue Trend</h2>
+              <RevenueChart
+                data={dailyTotals}
+                currency={getPrimaryCurrency()}
+              />
+            </div>
+
+            {/* Revenue Breakdown */}
+            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold mb-4">Revenue Breakdown</h2>
+              <RevenueBreakdownView breakdown={totalBreakdown} />
+            </div>
+
+            {/* Daily Statistics */}
+            <div className="lg:col-span-2 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-2 text-left">Date</th>
+                      <th className="px-4 py-2 text-left">Orders</th>
+                      <th className="px-4 py-2 text-left">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyTotals.map((day) => (
+                      <tr key={day.date} className="border-t">
+                        <td className="px-4 py-2">{day.date}</td>
+                        <td className="px-4 py-2">{day.orderCount}</td>
+                        <td className="px-4 py-2">
+                          {Object.entries(day.revenue).map(([currency, amount]) => (
+                            <div key={currency}>
+                              {currency}: ${(amount as number).toFixed(2)}
+                            </div>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -170,59 +211,6 @@ export default function Home() {
             />
           ))}
         </div>
-
-        {/* 总收入和明细 */}
-        {Object.keys(totalRevenue).length > 0 && (
-          <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm space-y-6">
-            <div>
-              <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
-              {Object.entries(totalRevenue).map(([currency, amount]) => (
-                <div key={currency} className="flex justify-between py-1">
-                  <span>{currency}:</span>
-                  <span>${amount.toFixed(2)}</span>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
-              <RevenueBreakdownView breakdown={totalBreakdown} />
-            </div>
-          </div>
-        )}
-
-        {/* 每日统计表格 */}
-        {dailyTotals.length > 0 && (
-          <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-2 text-left">Date</th>
-                    <th className="px-4 py-2 text-left">Orders</th>
-                    <th className="px-4 py-2 text-left">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dailyTotals.map((day) => (
-                    <tr key={day.date} className="border-t">
-                      <td className="px-4 py-2">{day.date}</td>
-                      <td className="px-4 py-2">{day.orderCount}</td>
-                      <td className="px-4 py-2">
-                        {Object.entries(day.revenue).map(([currency, amount]) => (
-                          <div key={currency}>
-                            {currency}: ${(amount as number).toFixed(2)}
-                          </div>
-                        ))}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

@@ -40,55 +40,51 @@ export function RevenueChart({ data, currency, compact = false }: RevenueChartPr
   };
 
   return (
-    <div className={`bg-white/80 backdrop-blur-lg rounded-xl ${compact ? 'p-2' : 'p-6'} shadow-sm`}>
-      <h3 className={`${compact ? 'text-sm' : 'text-lg'} font-semibold text-gray-900 mb-4`}>
-        Daily Revenue ({currency})
-      </h3>
-      <div className={`h-[${compact ? '200px' : '300px'}]`}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-            <XAxis 
-              dataKey="displayDate"
-              stroke="#6B7280"
-              ticks={generateTicks().map(index => chartData[index].displayDate)}
-              interval={0}
-              tickSize={compact ? 2 : 5}
-              tick={{ fontSize: compact ? 10 : 12 }}
-            />
-            <YAxis 
-              stroke="#6B7280"
-              tickSize={compact ? 2 : 5}
-              tick={{ fontSize: compact ? 10 : 12 }}
-              width={compact ? 30 : 40}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'white',
-                borderRadius: '0.5rem',
-                border: 'none',
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                fontSize: compact ? '12px' : '14px',
-              }}
-              formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
-              labelFormatter={(label) => `Day ${label}`}
-            />
-            <Area
-              type="monotone"
-              dataKey="revenue"
-              stroke="#6366F1"
-              fillOpacity={1}
-              fill="url(#colorRevenue)"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+    <div style={{ width: '100%', height: compact ? 160 : 300 }}>
+      <ResponsiveContainer>
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.1}/>
+              <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+          <XAxis 
+            dataKey="displayDate"
+            stroke="#6B7280"
+            ticks={generateTicks().map(index => chartData[index].displayDate)}
+            interval={0}
+            tickSize={compact ? 2 : 5}
+            tick={{ fontSize: compact ? 10 : 12 }}
+            height={20}
+          />
+          <YAxis 
+            stroke="#6B7280"
+            tickSize={compact ? 2 : 5}
+            tick={{ fontSize: compact ? 10 : 12 }}
+            width={compact ? 30 : 40}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'white',
+              borderRadius: '0.5rem',
+              border: 'none',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              fontSize: compact ? '12px' : '14px',
+            }}
+            formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
+            labelFormatter={(label) => `Day ${label}`}
+          />
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke="#6366F1"
+            fillOpacity={1}
+            fill="url(#colorRevenue)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 } 
