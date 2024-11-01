@@ -305,7 +305,7 @@ export async function GET(request: Request) {
     const stripeKey = process.env.STRIPE_SECRET_KEY;
 
     if (!stripeKey) {
-      return NextResponse.json({ message: "未配置 Stripe Key" }, { status: 400 });
+      return NextResponse.json({ message: "Stripe Key not configured" }, { status: 400 });
     }
 
     // 创建一个 TransformStream 用于流式传输
@@ -332,7 +332,7 @@ export async function GET(request: Request) {
         const endDate = now.clone().endOf("month").toDate();
 
         // 发送初始状态
-        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'status', message: '开始获取数据...' })}\n\n`));
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'status', message: 'Fetching data...' })}\n\n`));
 
         // 获取收入数据
         const revenue = await getRevenue(stripe, { startDate, endDate });
@@ -377,7 +377,7 @@ export async function GET(request: Request) {
         await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'complete' })}\n\n`));
       } catch (error) {
         // 发送错误信息
-        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: '获取数据失败' })}\n\n`));
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error', message: 'Failed to fetch data' })}\n\n`));
       } finally {
         await writer.close();
       }
@@ -385,6 +385,6 @@ export async function GET(request: Request) {
 
     return response;
   } catch (error) {
-    return NextResponse.json({ message: "获取收入数据失败" }, { status: 500 });
+    return NextResponse.json({ message: "Failed to fetch revenue data" }, { status: 500 });
   }
 }
