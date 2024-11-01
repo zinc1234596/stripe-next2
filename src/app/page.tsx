@@ -164,19 +164,7 @@ export default function Home() {
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold">Revenue Analytics</h1>
-          {/* 添加货币选择器 */}
-          <select
-            value={targetCurrency}
-            onChange={(e) => setTargetCurrency(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {supportedCurrencies.map(currency => (
-              <option key={currency} value={currency}>{currency}</option>
-            ))}
-          </select>
-        </div>
+        <h1 className="text-2xl font-bold">Revenue Analytics</h1>
         <button
           onClick={fetchRevenue}
           disabled={loading}
@@ -209,9 +197,11 @@ export default function Home() {
               timezone={timezone}
               selectedYear={selectedYear}
               selectedMonth={selectedMonth}
+              selectedCurrency={targetCurrency}
               onTimezoneChange={setTimezone}
               onYearChange={setSelectedYear}
               onMonthChange={setSelectedMonth}
+              onCurrencyChange={setTargetCurrency}
               loading={loading}
             />
           </div>
