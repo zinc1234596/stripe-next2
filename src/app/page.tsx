@@ -23,6 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { fetchExchangeRates, convertRevenue, mergeAndConvertRevenues } from "@/utils/currency";
 import { formatCurrency } from '@/utils/currencySymbols';
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend as RechartsLegend } from 'recharts';
 
 interface MerchantRevenue {
   merchantName: string;
@@ -163,6 +164,49 @@ export default function Home() {
   const highestDayTotal = highestDay 
     ? Object.values(highestDay.revenue).reduce((sum, amount) => sum + amount, 0)
     : 0;
+
+  // 添加处理 Revenue Breakdown 数据的函数
+  const getRevenueBreakdownData = () => {
+    const data = [];
+    
+    // 添加一次性收入数据
+    const oneTimeTotal = Object.values(totalBreakdown.oneTime)[0] || 0;
+    if (oneTimeTotal > 0) {
+      data.push({
+        name: '一次性收入',
+        value: oneTimeTotal,
+      });
+    }
+
+    // 添加订阅收入数据
+    Object.entries(totalBreakdown.subscription).forEach(([type, revenue]) => {
+      const amount = Object.values(revenue)[0] || 0;
+      if (amount > 0) {
+        let name = type;
+        switch (type) {
+          case 'monthly':
+            name = '月度订阅';
+            break;
+          case 'quarterly':
+            name = '季度订阅';
+            break;
+          case 'yearly':
+            name = '年度订阅';
+            break;
+          // 可以添加其他类型的映射
+        }
+        data.push({
+          name,
+          value: amount,
+        });
+      }
+    });
+
+    return data;
+  };
+
+  // 饼图的颜色
+  const COLORS = ['#818CF8', '#34D399', '#A855F7', '#60A5FA', '#F472B6'];
 
   return (
     <DashboardLayout>
@@ -355,11 +399,47 @@ export default function Home() {
                 <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
                 <h2 className="text-xl font-bold">Revenue Breakdown</h2>
               </div>
-              <div className="mt-4">
-                <RevenueBreakdownView 
-                  breakdown={totalBreakdown} 
-                  isOverview={true}
-                />
+              <div className="flex flex-col h-[280px] mt-4">
+                <div className="h-[180px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={getRevenueBreakdownData()}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={70}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {getRevenueBreakdownData().map((entry, index) => (
+                          <Cell 
+                            key={`cell-${index}`} 
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 flex-1">
+                  <div className="grid grid-cols-1 gap-2">
+                    {getRevenueBreakdownData().map((entry, index) => (
+                      <div key={entry.name} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <span className="text-sm text-gray-600">{entry.name}</span>
+                        </div>
+                        <span className="text-sm font-medium">
+                          {formatCurrency(entry.value, targetCurrency)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
