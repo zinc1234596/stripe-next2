@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentMonthRevenue, getMerchantName, getStripeClients, MerchantRevenue, getDailyStats } from "@/services/stripe";
+import { getCurrentMonthRevenue, getMerchantName, getStripeClients, getRevenueBreakdown, getDailyStats } from "@/services/stripe";
 import { getDateRange } from "@/utils/currency";
 import moment from 'moment-timezone';
 
@@ -26,17 +26,14 @@ export async function GET(request: Request) {
 
     // 并行获取所有数据
     const merchantsData = await Promise.all(
-      stripeClients.map(async (stripe): Promise<{
-        merchantName: string;
-        revenue: Record<string, number>;
-        dailyStats: any[];
-      }> => {
-        const [merchantName, revenue, dailyStats] = await Promise.all([
+      stripeClients.map(async (stripe) => {
+        const [merchantName, revenue, dailyStats, revenueBreakdown] = await Promise.all([
           getMerchantName(stripe),
           getCurrentMonthRevenue(stripe, dateRange),
-          getDailyStats(stripe, dateRange, timezone)
+          getDailyStats(stripe, dateRange, timezone),
+          getRevenueBreakdown(stripe, dateRange)
         ]);
-        return { merchantName, revenue, dailyStats };
+        return { merchantName, revenue, dailyStats, revenueBreakdown };
       })
     );
 
@@ -51,9 +48,38 @@ export async function GET(request: Request) {
     // 合并每日统计数据
     const dailyTotals = mergeDailyStats(merchantsData.map(m => m.dailyStats));
 
+    // 合并所有商户的收入明细
+    const totalBreakdown = {
+      oneTime: {} as Record<string, number>,
+      subscription: {
+        monthly: {} as Record<string, number>,
+        annual: {} as Record<string, number>,
+      }
+    };
+
+    merchantsData.forEach(({ revenueBreakdown }) => {
+      // 合并一次性付款
+      Object.entries(revenueBreakdown.oneTime).forEach(([currency, amount]) => {
+        totalBreakdown.oneTime[currency] = (totalBreakdown.oneTime[currency] || 0) + amount;
+      });
+
+      // 合并月付订阅
+      Object.entries(revenueBreakdown.subscription.monthly).forEach(([currency, amount]) => {
+        totalBreakdown.subscription.monthly[currency] = 
+          (totalBreakdown.subscription.monthly[currency] || 0) + amount;
+      });
+
+      // 合并年付订阅
+      Object.entries(revenueBreakdown.subscription.annual).forEach(([currency, amount]) => {
+        totalBreakdown.subscription.annual[currency] = 
+          (totalBreakdown.subscription.annual[currency] || 0) + amount;
+      });
+    });
+
     return NextResponse.json({ 
       merchants: merchantsData,
       totalRevenue,
+      totalBreakdown,
       dailyTotals,
       timezone,
       period: {

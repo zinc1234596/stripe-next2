@@ -13,6 +13,14 @@ export interface DailyStats {
   revenue: Record<string, number>;
 }
 
+export interface RevenueBreakdown {
+  oneTime: Record<string, number>;
+  subscription: {
+    monthly: Record<string, number>;
+    annual: Record<string, number>;
+  };
+}
+
 export async function getMerchantName(stripe: Stripe): Promise<string> {
   try {
     const account = await stripe.accounts.retrieve();
@@ -124,6 +132,68 @@ export async function getDailyStats(
 
   // 将对象转换为数组并按日期排序
   return Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export async function getRevenueBreakdown(
+  stripe: Stripe,
+  dateRange: DateRange
+): Promise<RevenueBreakdown> {
+  const breakdown: RevenueBreakdown = {
+    oneTime: {},
+    subscription: {
+      monthly: {},
+      annual: {},
+    }
+  };
+
+  // 获取所有收费
+  let hasMore = true;
+  let startingAfter: string | undefined;
+
+  while (hasMore) {
+    const charges = await stripe.charges.list({
+      created: {
+        gte: Math.floor(dateRange.startDate.getTime() / 1000),
+        lte: Math.floor(dateRange.endDate.getTime() / 1000),
+      },
+      limit: 100,
+      starting_after: startingAfter,
+      expand: ['data.invoice'],
+    });
+
+    for (const charge of charges.data) {
+      if (charge.status !== "succeeded" || charge.refunded) continue;
+
+      const currency = charge.currency.toUpperCase();
+      const amount = convertToProperUnits(currency, charge.amount);
+
+      // 检查是否是订阅付款
+      const invoice = charge.invoice as Stripe.Invoice;
+      if (invoice && invoice.subscription) {
+        // 获取订阅详情
+        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const interval = subscription.items.data[0]?.price?.recurring?.interval;
+
+        if (interval === 'month') {
+          breakdown.subscription.monthly[currency] = 
+            (breakdown.subscription.monthly[currency] || 0) + amount;
+        } else if (interval === 'year') {
+          breakdown.subscription.annual[currency] = 
+            (breakdown.subscription.annual[currency] || 0) + amount;
+        }
+      } else {
+        // 一次性付款
+        breakdown.oneTime[currency] = (breakdown.oneTime[currency] || 0) + amount;
+      }
+    }
+
+    hasMore = charges.has_more;
+    if (hasMore && charges.data.length > 0) {
+      startingAfter = charges.data[charges.data.length - 1].id;
+    }
+  }
+
+  return breakdown;
 }
 
 // ... 其他 Stripe 相关函数 

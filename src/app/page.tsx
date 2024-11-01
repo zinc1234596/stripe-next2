@@ -6,12 +6,21 @@ interface MerchantRevenue {
   merchantName: string;
   revenue: Record<string, number>;
   dailyStats: DailyStats[];
+  revenueBreakdown: RevenueBreakdown;
 }
 
 interface DailyStats {
   date: string;
   orderCount: number;
   revenue: Record<string, number>;
+}
+
+interface RevenueBreakdown {
+  oneTime: Record<string, number>;
+  subscription: {
+    monthly: Record<string, number>;
+    annual: Record<string, number>;
+  };
 }
 
 export default function Home() {
@@ -22,6 +31,10 @@ export default function Home() {
   const [timezone, setTimezone] = useState("Asia/Shanghai");
   const [period, setPeriod] = useState<{ start: string; end: string } | null>(null);
   const [dailyTotals, setDailyTotals] = useState<any[]>([]);
+  const [totalBreakdown, setTotalBreakdown] = useState<RevenueBreakdown>({
+    oneTime: {},
+    subscription: { monthly: {}, annual: {} }
+  });
   
   // 添加年月选择状态
   const now = moment().tz(timezone);
@@ -53,6 +66,7 @@ export default function Home() {
       setTotalRevenue(data.totalRevenue);
       setPeriod(data.period);
       setDailyTotals(data.dailyTotals);
+      setTotalBreakdown(data.totalBreakdown);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -76,6 +90,41 @@ export default function Home() {
     "Europe/London",
     "UTC"
   ];
+
+  // 渲染收入明细的辅助函数
+  const renderRevenueBreakdown = (breakdown: RevenueBreakdown) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold mb-2">One-Time Payments</h3>
+          {Object.entries(breakdown.oneTime).map(([currency, amount]) => (
+            <div key={currency} className="flex justify-between py-1">
+              <span>{currency}:</span>
+              <span>${amount.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold mb-2">Monthly Subscriptions</h3>
+          {Object.entries(breakdown.subscription.monthly).map(([currency, amount]) => (
+            <div key={currency} className="flex justify-between py-1">
+              <span>{currency}:</span>
+              <span>${amount.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white p-4 rounded shadow">
+          <h3 className="font-semibold mb-2">Annual Subscriptions</h3>
+          {Object.entries(breakdown.subscription.annual).map(([currency, amount]) => (
+            <div key={currency} className="flex justify-between py-1">
+              <span>{currency}:</span>
+              <span>${amount.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <main className="p-8">
@@ -199,19 +248,103 @@ export default function Home() {
                   </div>
                 </div>
               )}
+
+              {expandedMerchant === merchant.merchantName && (
+                <>
+                  <h3 className="font-semibold mt-4">Revenue Breakdown</h3>
+                  {renderRevenueBreakdown(merchant.revenueBreakdown)}
+                </>
+              )}
             </div>
           ))}
 
-          {/* 总收入 */}
+          {/* 总收入和明细 */}
           {Object.keys(totalRevenue).length > 0 && (
-            <div className="bg-white p-4 rounded shadow border-t-4 border-blue-500">
-              <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
-              {Object.entries(totalRevenue).map(([currency, amount]) => (
-                <div key={currency} className="flex justify-between py-1">
-                  <span>{currency}:</span>
-                  <span>${amount.toFixed(2)}</span>
+            <div className="bg-white p-4 rounded shadow border-t-4 border-blue-500 space-y-6">
+              <div>
+                <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
+                {Object.entries(totalRevenue).map(([currency, amount]) => (
+                  <div key={currency} className="flex justify-between py-1">
+                    <span>{currency}:</span>
+                    <span>${amount.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 添加总收入明细 */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Revenue Breakdown</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  {/* 一次性付款 */}
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold mb-2">One-Time Payments</h4>
+                    {Object.entries(totalBreakdown.oneTime).map(([currency, amount]) => (
+                      <div key={currency} className="flex justify-between py-1">
+                        <span>{currency}:</span>
+                        <span>${amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {Object.keys(totalBreakdown.oneTime).length === 0 && (
+                      <div className="text-gray-500">No one-time payments</div>
+                    )}
+                  </div>
+
+                  {/* 月度订阅 */}
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold mb-2">Monthly Subscriptions</h4>
+                    {Object.entries(totalBreakdown.subscription.monthly).map(([currency, amount]) => (
+                      <div key={currency} className="flex justify-between py-1">
+                        <span>{currency}:</span>
+                        <span>${amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {Object.keys(totalBreakdown.subscription.monthly).length === 0 && (
+                      <div className="text-gray-500">No monthly subscriptions</div>
+                    )}
+                  </div>
+
+                  {/* 年度订阅 */}
+                  <div className="bg-gray-50 p-4 rounded">
+                    <h4 className="font-semibold mb-2">Annual Subscriptions</h4>
+                    {Object.entries(totalBreakdown.subscription.annual).map(([currency, amount]) => (
+                      <div key={currency} className="flex justify-between py-1">
+                        <span>{currency}:</span>
+                        <span>${amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {Object.keys(totalBreakdown.subscription.annual).length === 0 && (
+                      <div className="text-gray-500">No annual subscriptions</div>
+                    )}
+                  </div>
                 </div>
-              ))}
+
+                {/* 添加百分比统计 */}
+                <div className="mt-4 p-4 bg-gray-50 rounded">
+                  <h4 className="font-semibold mb-2">Revenue Distribution</h4>
+                  {Object.entries(totalRevenue).map(([currency, totalAmount]) => {
+                    const oneTime = totalBreakdown.oneTime[currency] || 0;
+                    const monthly = totalBreakdown.subscription.monthly[currency] || 0;
+                    const annual = totalBreakdown.subscription.annual[currency] || 0;
+
+                    return (
+                      <div key={currency} className="mb-3">
+                        <div className="font-medium">{currency}</div>
+                        <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            One-Time: {((oneTime / totalAmount) * 100).toFixed(1)}%
+                          </div>
+                          <div>
+                            Monthly: {((monthly / totalAmount) * 100).toFixed(1)}%
+                          </div>
+                          <div>
+                            Annual: {((annual / totalAmount) * 100).toFixed(1)}%
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -245,6 +378,14 @@ export default function Home() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* 总收入明细 */}
+          {Object.keys(totalBreakdown.oneTime).length > 0 && (
+            <div className="bg-white p-4 rounded shadow mt-6">
+              <h2 className="text-xl font-bold mb-4">Total Revenue Breakdown</h2>
+              {renderRevenueBreakdown(totalBreakdown)}
             </div>
           )}
         </div>
