@@ -46,15 +46,17 @@ export async function getCurrentMonthRevenue(
 ): Promise<Record<string, number>> {
   const revenue: Record<string, number> = {};
   
-  const charges = await stripe.charges.list({
-    created: {
-      gte: Math.floor(dateRange.startDate.getTime() / 1000),
-      lte: Math.floor(dateRange.endDate.getTime() / 1000),
-    },
-    limit: 100,
-  });
+  const charges = await parallelPaginatedList(
+    (params) => stripe.charges.list(params),
+    {
+      created: {
+        gte: Math.floor(dateRange.startDate.getTime() / 1000),
+        lte: Math.floor(dateRange.endDate.getTime() / 1000),
+      }
+    }
+  );
 
-  charges.data.forEach((charge) => {
+  charges.forEach((charge) => {
     if (charge.status === "succeeded" && !charge.refunded) {
       const currency = charge.currency.toUpperCase();
       revenue[currency] = (revenue[currency] || 0) + charge.amount;
@@ -104,40 +106,30 @@ export async function getDailyStats(
     };
   }
 
-  let hasMore = true;
-  let startingAfter: string | undefined;
-
-  while (hasMore) {
-    const charges = await stripe.charges.list({
+  const charges = await parallelPaginatedList(
+    (params) => stripe.charges.list(params),
+    {
       created: {
         gte: Math.floor(dateRange.startDate.getTime() / 1000),
         lte: Math.floor(dateRange.endDate.getTime() / 1000),
-      },
-      limit: 100,
-      starting_after: startingAfter,
-    });
-
-    charges.data.forEach((charge) => {
-      if (charge.status === "succeeded" && !charge.refunded) {
-        const chargeDate = moment.unix(charge.created).tz(timezone).format('YYYY-MM-DD');
-        const currency = charge.currency.toUpperCase();
-        const amount = convertToProperUnits(currency, charge.amount);
-
-        if (dailyStats[chargeDate]) {
-          dailyStats[chargeDate].orderCount++;
-          dailyStats[chargeDate].revenue[currency] = 
-            (dailyStats[chargeDate].revenue[currency] || 0) + amount;
-        }
       }
-    });
-
-    hasMore = charges.has_more;
-    if (hasMore && charges.data.length > 0) {
-      startingAfter = charges.data[charges.data.length - 1].id;
     }
-  }
+  );
 
-  // 将对象转换为数组并按日期排序
+  charges.forEach((charge) => {
+    if (charge.status === "succeeded" && !charge.refunded) {
+      const chargeDate = moment.unix(charge.created).tz(timezone).format('YYYY-MM-DD');
+      const currency = charge.currency.toUpperCase();
+      const amount = convertToProperUnits(currency, charge.amount);
+
+      if (dailyStats[chargeDate]) {
+        dailyStats[chargeDate].orderCount++;
+        dailyStats[chargeDate].revenue[currency] = 
+          (dailyStats[chargeDate].revenue[currency] || 0) + amount;
+      }
+    }
+  });
+
   return Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date));
 }
 
@@ -155,35 +147,53 @@ export async function getRevenueBreakdown(
     }, {} as Record<string, Record<string, number>>)
   };
 
-  let hasMore = true;
-  let startingAfter: string | undefined;
-
-  while (hasMore) {
-    const charges = await stripe.charges.list({
+  const charges = await parallelPaginatedList(
+    (params) => stripe.charges.list(params),
+    {
       created: {
         gte: Math.floor(dateRange.startDate.getTime() / 1000),
         lte: Math.floor(dateRange.endDate.getTime() / 1000),
       },
-      limit: 100,
-      starting_after: startingAfter,
-      expand: ['data.invoice'],
-    });
+      expand: ['data.invoice']
+    }
+  );
 
-    for (const charge of charges.data) {
-      if (charge.status !== "succeeded" || charge.refunded) continue;
+  // 收集所有需要查询的订阅ID
+  const subscriptionIds = new Set<string>();
+  charges.forEach(charge => {
+    const invoice = charge.invoice as Stripe.Invoice;
+    if (invoice?.subscription) {
+      subscriptionIds.add(invoice.subscription as string);
+    }
+  });
 
-      const currency = charge.currency.toUpperCase();
-      const amount = convertToProperUnits(currency, charge.amount);
+  // 并行获取所有订阅信息
+  const subscriptions = await Promise.all(
+    Array.from(subscriptionIds).map(id => 
+      stripe.subscriptions.retrieve(id).catch(() => null)
+    )
+  );
 
-      // 检查是否是订阅付款
-      const invoice = charge.invoice as Stripe.Invoice;
-      if (invoice && invoice.subscription) {
-        // 获取订阅详情
-        const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+  // 创建订阅查找映射
+  const subscriptionMap = new Map(
+    subscriptions
+      .filter(Boolean)
+      .map(sub => [sub!.id, sub])
+  );
+
+  // 处理所有 charges
+  for (const charge of charges) {
+    if (charge.status !== "succeeded" || charge.refunded) continue;
+
+    const currency = charge.currency.toUpperCase();
+    const amount = convertToProperUnits(currency, charge.amount);
+
+    const invoice = charge.invoice as Stripe.Invoice;
+    if (invoice?.subscription) {
+      const subscription = subscriptionMap.get(invoice.subscription as string);
+      if (subscription) {
         const interval = subscription.items.data[0]?.price?.recurring?.interval;
         const intervalCount = subscription.items.data[0]?.price?.recurring?.interval_count || 1;
-        
-        // 构建完整的 interval 字符串
         const fullInterval = intervalCount > 1 ? `${intervalCount}-${interval}` : interval;
         const paymentType = getPaymentTypeByInterval(fullInterval);
 
@@ -191,15 +201,9 @@ export async function getRevenueBreakdown(
           breakdown.subscription[paymentType.id][currency] = 
             (breakdown.subscription[paymentType.id][currency] || 0) + amount;
         }
-      } else {
-        // 一次性付款
-        breakdown.oneTime[currency] = (breakdown.oneTime[currency] || 0) + amount;
       }
-    }
-
-    hasMore = charges.has_more;
-    if (hasMore && charges.data.length > 0) {
-      startingAfter = charges.data[charges.data.length - 1].id;
+    } else {
+      breakdown.oneTime[currency] = (breakdown.oneTime[currency] || 0) + amount;
     }
   }
 
@@ -245,6 +249,41 @@ export async function getAnalyticsData(stripe: Stripe, startDate: Date, endDate:
   });
 
   return Object.values(dailyData);
+}
+
+// 添加一个通用的并行分页函数
+async function parallelPaginatedList<T>(
+  listFn: (params: any) => Promise<Stripe.ApiList<T>>,
+  params: any,
+  maxParallelRequests = 10
+): Promise<T[]> {
+  // 首先获取第一页来得到总数
+  const firstPage = await listFn({ ...params, limit: 100 });
+  // @ts-ignore
+  const totalPages = Math.ceil(firstPage.total_count! / 100);
+  
+  // 创建所有页面的请求数组
+  const pagePromises: Promise<Stripe.ApiList<T>>[] = [Promise.resolve(firstPage)];
+  
+  // 并行请求其他页面
+  for (let i = 1; i < totalPages; i++) {
+    pagePromises.push(
+      listFn({
+        ...params,
+        limit: 100,
+        // @ts-ignore
+        starting_after: firstPage.data[(i - 1) * 100]?.id
+      })
+    );
+    
+    // 控制并发数
+    if (pagePromises.length >= maxParallelRequests) {
+      await Promise.all(pagePromises);
+    }
+  }
+
+  const results = await Promise.all(pagePromises);
+  return results.flatMap(result => result.data);
 }
 
 // ... 其他 Stripe 相关函数 
