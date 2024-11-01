@@ -112,6 +112,16 @@ export default function Home() {
     try {
       setLoading(true);
       setError(null);
+      
+      // 清空当前数据
+      setMerchantsData([]);
+      setTotalRevenue({});
+      setPeriod(null);
+      setDailyTotals([]);
+      setTotalBreakdown({
+        oneTime: {},
+        subscription: {}
+      });
 
       const response = await fetch(
         `/api/get-revenue?` + 
@@ -205,7 +215,7 @@ export default function Home() {
     return data;
   };
 
-  // 饼图的颜色
+  // 饼��的颜色
   const COLORS = ['#818CF8', '#34D399', '#A855F7', '#60A5FA', '#F472B6'];
 
   return (
