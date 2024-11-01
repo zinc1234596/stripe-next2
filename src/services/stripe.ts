@@ -21,6 +21,13 @@ export interface RevenueBreakdown {
   };
 }
 
+export interface AnalyticsData {
+  date: string;
+  revenue: number;
+  orderCount: number;
+  cumulativeRevenue: number;
+}
+
 export async function getMerchantName(stripe: Stripe): Promise<string> {
   try {
     const account = await stripe.accounts.retrieve();
@@ -197,6 +204,47 @@ export async function getRevenueBreakdown(
   }
 
   return breakdown;
+}
+
+export async function getAnalyticsData(stripe: Stripe, startDate: Date, endDate: Date): Promise<AnalyticsData[]> {
+  const payments = await stripe.paymentIntents.list({
+    created: {
+      gte: Math.floor(startDate.getTime() / 1000),
+      lte: Math.floor(endDate.getTime() / 1000),
+    },
+    limit: 100,
+  });
+
+  // 按日期组织数据
+  const dailyData: { [key: string]: AnalyticsData } = {};
+  let cumulativeRevenue = 0;
+
+  payments.data.forEach((payment) => {
+    const date = new Date(payment.created * 1000).toISOString().split('T')[0];
+    
+    if (!dailyData[date]) {
+      dailyData[date] = {
+        date,
+        revenue: 0,
+        orderCount: 0,
+        cumulativeRevenue: 0,
+      };
+    }
+
+    if (payment.status === 'succeeded') {
+      dailyData[date].revenue += payment.amount / 100;
+      dailyData[date].orderCount += 1;
+    }
+  });
+
+  // 计算累计收入
+  const sortedDates = Object.keys(dailyData).sort();
+  sortedDates.forEach((date) => {
+    cumulativeRevenue += dailyData[date].revenue;
+    dailyData[date].cumulativeRevenue = cumulativeRevenue;
+  });
+
+  return Object.values(dailyData);
 }
 
 // ... 其他 Stripe 相关函数 
