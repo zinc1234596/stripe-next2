@@ -65,10 +65,11 @@ export function MerchantCard({
                 <h3 className="text-sm font-semibold text-gray-900">Revenue Trend</h3>
               </div>
               <div className="p-2">
-                <div className="h-[200px]"> {/* 减小图表高度 */}
+                <div className="h-[200px]">
                   <RevenueChart
                     data={dailyStats}
                     currency={getPrimaryCurrency()}
+                    compact={true}
                   />
                 </div>
               </div>
