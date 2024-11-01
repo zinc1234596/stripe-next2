@@ -10,7 +10,7 @@ import {
   BanknotesIcon
 } from '@heroicons/react/24/outline';
 import { useState } from "react";
-
+import { formatCurrency } from '@/utils/currencySymbols';
 interface MerchantCardProps {
   merchantName: string;
   revenue: Record<string, number>;
@@ -54,22 +54,23 @@ export function MerchantCard({
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-xl p-4 shadow-sm space-y-3">
-      {/* 头部信息 */}
-      <div className="border-b pb-2">
-        <h2 className="text-lg font-bold text-gray-900">{merchantName}</h2>
-      </div>
-
-      {/* 基础收入信息 */}
-      <div className="grid grid-cols-2 gap-2">
-        {Object.entries(revenue).map(([currency, amount]) => (
-          <div key={currency} className="bg-gray-50 rounded p-2">
-            <div className="text-xs text-gray-500">{currency}</div>
-            <div className="text-sm font-semibold text-gray-900">
-              ${amount.toFixed(2)}
+    <div className="bg-white/80 backdrop-blur-lg rounded-xl p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-full">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center justify-between flex-wrap gap-2 px-4">
+            <span className="min-w-[120px]">{merchantName}</span>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(revenue).map(([currency, amount]) => (
+                <span 
+                  key={currency}
+                  className="text-base font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md"
+                >
+                  {formatCurrency(amount, currency)}
+                </span>
+              ))}
             </div>
-          </div>
-        ))}
+          </h3>
+        </div>
       </div>
 
       <div className="space-y-3">
