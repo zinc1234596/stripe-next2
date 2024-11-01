@@ -8,7 +8,7 @@ interface RevenueBreakdownViewProps {
   compact?: boolean;
 }
 
-export function RevenueBreakdownView({ breakdown, compact = false }: RevenueBreakdownViewProps) {
+export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [showLeftButton, setShowLeftButton] = useState(false);
@@ -75,58 +75,42 @@ export function RevenueBreakdownView({ breakdown, compact = false }: RevenueBrea
     ));
   };
 
-  if (compact) {
-    // 紧凑模式的布局 - 使用水平滚动
-    return (
-      <div className="relative">
-        {showScrollButtons && showLeftButton && (
-          <button
-            onClick={() => handleScroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md hover:bg-white"
-          >
-            <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
-          </button>
-        )}
-        
-        {showScrollButtons && showRightButton && (
-          <button
-            onClick={() => handleScroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md hover:bg-white"
-          >
-            <ChevronRightIcon className="h-4 w-4 text-gray-600" />
-          </button>
-        )}
-
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScrollEvent}
-          className="flex overflow-x-auto scrollbar-hide gap-2 relative"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {activeTypes.map(type => (
-            <div 
-              key={type.id} 
-              className="flex-none w-[200px] bg-gray-50 rounded-lg p-2"
-            >
-              <div className="text-xs font-medium text-gray-600 mb-1">{type.name}</div>
-              <div className="text-xs space-y-1">
-                {renderPaymentTypeContent(type)}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // 常规模式的布局（用于总览）保持不变
+  // 使用统一的滚动布局
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-4">
+    <div className="relative">
+      {showScrollButtons && showLeftButton && (
+        <button
+          onClick={() => handleScroll('left')}
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md hover:bg-white"
+        >
+          <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+        </button>
+      )}
+      
+      {showScrollButtons && showRightButton && (
+        <button
+          onClick={() => handleScroll('right')}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-1 shadow-md hover:bg-white"
+        >
+          <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+        </button>
+      )}
+
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScrollEvent}
+        className="flex overflow-x-auto scrollbar-hide gap-2 relative"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
         {activeTypes.map(type => (
-          <div key={type.id} className="bg-white p-4 rounded shadow">
-            <h3 className="font-semibold mb-2">{type.name}</h3>
-            {renderPaymentTypeContent(type)}
+          <div 
+            key={type.id} 
+            className="flex-none w-[200px] bg-gray-50 rounded-lg p-2"
+          >
+            <div className="text-xs font-medium text-gray-600 mb-1">{type.name}</div>
+            <div className="text-xs space-y-1">
+              {renderPaymentTypeContent(type)}
+            </div>
           </div>
         ))}
       </div>
