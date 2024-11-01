@@ -5,10 +5,10 @@ import { useRef, useState, useEffect } from 'react';
 
 interface RevenueBreakdownViewProps {
   breakdown: RevenueBreakdown;
-  compact?: boolean;
+  isOverview?: boolean;
 }
 
-export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
+export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueBreakdownViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showScrollButtons, setShowScrollButtons] = useState(false);
   const [showLeftButton, setShowLeftButton] = useState(false);
@@ -27,6 +27,7 @@ export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
 
   // 检查滚动按钮的显示状态
   const checkScroll = () => {
+    if (isOverview) return;
     const container = scrollContainerRef.current;
     if (container) {
       const hasOverflow = container.scrollWidth > container.clientWidth;
@@ -39,10 +40,12 @@ export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
   };
 
   useEffect(() => {
-    checkScroll();
-    window.addEventListener('resize', checkScroll);
-    return () => window.removeEventListener('resize', checkScroll);
-  }, [breakdown]);
+    if (!isOverview) {
+      checkScroll();
+      window.addEventListener('resize', checkScroll);
+      return () => window.removeEventListener('resize', checkScroll);
+    }
+  }, [breakdown, isOverview]);
 
   // 处理滚动
   const handleScroll = (direction: 'left' | 'right') => {
@@ -58,7 +61,9 @@ export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
 
   // 监听滚动事件
   const handleScrollEvent = () => {
-    checkScroll();
+    if (!isOverview) {
+      checkScroll();
+    }
   };
 
   // 渲染付款类型的内容
@@ -75,7 +80,26 @@ export function RevenueBreakdownView({ breakdown }: RevenueBreakdownViewProps) {
     ));
   };
 
-  // 使用统一的滚动布局
+  if (isOverview) {
+    // 总览模式：竖直排列
+    return (
+      <div className="grid grid-cols-1 gap-4">
+        {activeTypes.map(type => (
+          <div 
+            key={type.id} 
+            className="bg-gray-50 rounded-lg p-4"
+          >
+            <div className="text-sm font-medium text-gray-700 mb-2">{type.name}</div>
+            <div className="space-y-2">
+              {renderPaymentTypeContent(type)}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 商户卡片模式：水平滚动
   return (
     <div className="relative">
       {showScrollButtons && showLeftButton && (

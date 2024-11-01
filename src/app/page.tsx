@@ -164,7 +164,10 @@ export default function Home() {
                 <h2 className="text-xl font-bold">Revenue Breakdown</h2>
               </div>
               <div className="mt-4">
-                <RevenueBreakdownView breakdown={totalBreakdown} />
+                <RevenueBreakdownView 
+                  breakdown={totalBreakdown} 
+                  isOverview={true}
+                />
               </div>
             </div>
 
