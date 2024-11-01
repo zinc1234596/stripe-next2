@@ -14,7 +14,9 @@ import {
   UserGroupIcon,
   ArrowTrendingUpIcon,
   TableCellsIcon,
-  ChartBarIcon 
+  ChartBarIcon,
+  ChartPieIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 interface MerchantRevenue {
@@ -36,7 +38,6 @@ export default function Home() {
     oneTime: {},
     subscription: {}
   });
-  const [overviewMode, setOverviewMode] = useState<'chart' | 'table'>('chart');
   
   const now = moment().tz(timezone);
   const [selectedYear, setSelectedYear] = useState(now.year());
@@ -44,6 +45,7 @@ export default function Home() {
   const [expandedMerchants, setExpandedMerchants] = useState<Set<string>>(
     new Set(merchantsData.map(m => m.merchantName))
   );
+  const [overviewMode, setOverviewMode] = useState<'chart' | 'table'>('chart');
 
   useEffect(() => {
     setExpandedMerchants(new Set(merchantsData.map(m => m.merchantName)));
@@ -157,67 +159,72 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Revenue Breakdown */}
             <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold mb-4">Revenue Breakdown</h2>
-              <RevenueBreakdownView breakdown={totalBreakdown} />
+              <div className="flex items-center border-b pb-4">
+                <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
+                <h2 className="text-xl font-bold">Revenue Breakdown</h2>
+              </div>
+              <div className="mt-4">
+                <RevenueBreakdownView breakdown={totalBreakdown} />
+              </div>
             </div>
 
             {/* 数据视图（图表/表格） */}
             <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">
-                  {overviewMode === 'chart' ? 'Revenue Trend' : 'Daily Statistics'}
-                </h2>
+              <div className="flex items-center justify-between border-b pb-4">
+                <div className="flex items-center">
+                  {overviewMode === 'chart' ? (
+                    <ChartBarIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  ) : (
+                    <TableCellsIcon className="h-5 w-5 text-gray-400 mr-2" />
+                  )}
+                  <h2 className="text-xl font-bold">
+                    {overviewMode === 'chart' ? 'Revenue Trend' : 'Daily Statistics'}
+                  </h2>
+                </div>
                 <button
                   onClick={() => setOverviewMode(prev => prev === 'chart' ? 'table' : 'chart')}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600"
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  title={overviewMode === 'chart' ? 'Show Table' : 'Show Chart'}
                 >
-                  {overviewMode === 'chart' ? (
-                    <>
-                      <TableCellsIcon className="h-5 w-5" />
-                      <span className="text-sm">Show Table</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChartBarIcon className="h-5 w-5" />
-                      <span className="text-sm">Show Chart</span>
-                    </>
-                  )}
+                  <ArrowPathIcon className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
 
-              {overviewMode === 'chart' ? (
-                <RevenueChart
-                  data={dailyTotals}
-                  currency={getPrimaryCurrency()}
-                />
-              ) : (
-                <div className="overflow-x-auto max-h-[400px]">
-                  <table className="min-w-full">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-4 py-2 text-left">Date</th>
-                        <th className="px-4 py-2 text-left">Orders</th>
-                        <th className="px-4 py-2 text-left">Revenue</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dailyTotals.map((day) => (
-                        <tr key={day.date} className="border-t hover:bg-gray-50">
-                          <td className="px-4 py-2">{day.date}</td>
-                          <td className="px-4 py-2">{day.orderCount}</td>
-                          <td className="px-4 py-2">
-                            {Object.entries(day.revenue).map(([currency, amount]) => (
-                              <div key={currency}>
-                                {currency}: ${(amount as number).toFixed(2)}
-                              </div>
-                            ))}
-                          </td>
+              <div className="mt-4">
+                {overviewMode === 'chart' ? (
+                  <RevenueChart
+                    data={dailyTotals}
+                    currency={getPrimaryCurrency()}
+                  />
+                ) : (
+                  <div className="overflow-x-auto max-h-[400px]">
+                    <table className="min-w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-4 py-2 text-left">Date</th>
+                          <th className="px-4 py-2 text-left">Orders</th>
+                          <th className="px-4 py-2 text-left">Revenue</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      </thead>
+                      <tbody>
+                        {dailyTotals.map((day) => (
+                          <tr key={day.date} className="border-t hover:bg-gray-50">
+                            <td className="px-4 py-2">{day.date}</td>
+                            <td className="px-4 py-2">{day.orderCount}</td>
+                            <td className="px-4 py-2">
+                              {Object.entries(day.revenue).map(([currency, amount]) => (
+                                <div key={currency}>
+                                  {currency}: ${(amount as number).toFixed(2)}
+                                </div>
+                              ))}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
