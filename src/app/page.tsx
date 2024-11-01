@@ -105,7 +105,31 @@ export default function Home() {
 
   return (
     <DashboardLayout>
-      <h1 className="text-2xl font-bold mb-6">Revenue Analytics</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Revenue Analytics</h1>
+        <button
+          onClick={fetchRevenue}
+          disabled={loading}
+          className={`
+            flex items-center justify-center
+            w-10 h-10
+            rounded-full
+            transition-all duration-200
+            ${loading 
+              ? 'bg-gray-100 cursor-not-allowed' 
+              : 'bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200'
+            }
+          `}
+          title="Refresh Data"
+        >
+          <ArrowPathIcon 
+            className={`h-5 w-5 ${loading 
+              ? 'text-gray-400 animate-spin' 
+              : 'text-indigo-600'
+            }`}
+          />
+        </button>
+      </div>
 
       <div className="space-y-4 md:space-y-6">
         {/* 参数选择区域 - 移动端优化 */}
@@ -119,7 +143,6 @@ export default function Home() {
               onYearChange={setSelectedYear}
               onMonthChange={setSelectedMonth}
               loading={loading}
-              onFetch={fetchRevenue}
             />
           </div>
           {period && (
