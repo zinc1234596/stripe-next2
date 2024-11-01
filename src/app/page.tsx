@@ -215,7 +215,7 @@ export default function Home() {
     return data;
   };
 
-  // 饼��的颜色
+  // 饼的颜色
   const COLORS = ['#818CF8', '#34D399', '#A855F7', '#60A5FA', '#F472B6'];
 
   return (
@@ -270,8 +270,8 @@ export default function Home() {
 
       <div className="space-y-4 md:space-y-6">
         {/* 参数选择区域 - 移动端优化 */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-xl shadow-sm">
-          <div className="p-4">
+        <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-sm">
+          <div className="p-3">
             <DateTimeSelector
               timezone={timezone}
               selectedYear={selectedYear}
@@ -285,7 +285,7 @@ export default function Home() {
             />
           </div>
           {period && (
-            <div className="border-t px-4 py-3 text-sm text-gray-600 bg-gray-50/50">
+            <div className="border-t px-3 py-2 text-xs text-gray-500 bg-gray-50/50">
               Period: {moment(period.start).format('YYYY-MM-DD HH:mm')} to{' '}
               {moment(period.end).format('YYYY-MM-DD HH:mm')} ({timezone})
             </div>
@@ -296,18 +296,18 @@ export default function Home() {
 
         {/* 统计卡片 */}
         {Object.keys(convertedTotalRevenue).length > 0 && dailyTotals.length > 0 && (
-          <div className="grid grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-5 gap-2">
             <StatCard
               title="Total Revenue"
               value={formatCurrency(Object.values(convertedTotalRevenue)[0], targetCurrency)}
-              icon={<BanknotesIcon className="h-6 w-6" />}
+              icon={<BanknotesIcon className="h-5 w-5" />}
               color="indigo"
               size="default"
             />
             <StatCard
               title="Total Orders"
               value={getTotalOrders()}
-              icon={<CreditCardIcon className="h-5 w-5" />}
+              icon={<CreditCardIcon className="h-4 w-4" />}
               color="gray"
               size="small"
             />

@@ -61,40 +61,40 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'gray', v
 
   const sizeStyles = {
     small: {
+      padding: 'p-3',
+      title: 'text-xs',
+      value: 'text-base',
+      iconWrapper: 'p-1.5',
+    },
+    default: {
       padding: 'p-4',
       title: 'text-xs',
       value: 'text-lg',
       iconWrapper: 'p-2',
     },
-    default: {
+    large: {
       padding: 'p-5',
       title: 'text-sm',
       value: 'text-xl',
       iconWrapper: 'p-2.5',
     },
-    large: {
-      padding: 'p-6',
-      title: 'text-base',
-      value: 'text-2xl',
-      iconWrapper: 'p-3',
-    },
   };
 
   return (
     <div className={`
-      backdrop-blur-lg rounded-xl shadow-sm hover:shadow-md transition-all 
+      backdrop-blur-lg rounded-lg shadow-sm hover:shadow-md transition-all 
       ${colorStyles[color].background}
       ${sizeStyles[size].padding}
     `}>
       <div className="flex items-center justify-between">
-        <div className={`text-gray-600 font-medium ${sizeStyles[size].title}`}>
+        <div className={`text-gray-500 font-medium ${sizeStyles[size].title}`}>
           {title}
         </div>
-        <div className={`rounded-xl ${colorStyles[color].icon} ${sizeStyles[size].iconWrapper}`}>
+        <div className={`rounded-lg ${colorStyles[color].icon} ${sizeStyles[size].iconWrapper}`}>
           {icon}
         </div>
       </div>
-      <div className="mt-2">
+      <div className="mt-1.5">
         <div className={`font-bold ${valueClassName || colorStyles[color].text} ${sizeStyles[size].value}`}>
           {value}
         </div>
@@ -104,7 +104,7 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'gray', v
           </div>
         )}
         {trend && (
-          <div className={`text-xs mt-1 flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <div className={`text-xs mt-0.5 flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             <span className="text-xs text-gray-500">vs last month</span>
           </div>
