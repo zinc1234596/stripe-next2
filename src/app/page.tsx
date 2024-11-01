@@ -17,7 +17,9 @@ import {
   ChartBarIcon,
   ChartPieIcon,
   ArrowPathIcon,
-  TrophyIcon
+  TrophyIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import { fetchExchangeRates, convertRevenue, mergeAndConvertRevenues } from "@/utils/currency";
 import { formatCurrency } from '@/utils/currencySymbols';
@@ -51,6 +53,7 @@ export default function Home() {
   const [overviewMode, setOverviewMode] = useState<'chart' | 'table'>('chart');
   const [targetCurrency, setTargetCurrency] = useState('USD');
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // 支持的货币列表
   const supportedCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'HKD'];
@@ -165,28 +168,50 @@ export default function Home() {
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Revenue Analytics</h1>
-        <button
-          onClick={fetchRevenue}
-          disabled={loading}
-          className={`
-            flex items-center justify-center
-            w-10 h-10
-            rounded-full
-            transition-all duration-200
-            ${loading 
-              ? 'bg-gray-100 cursor-not-allowed' 
-              : 'bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200'
-            }
-          `}
-          title="Refresh Data"
-        >
-          <ArrowPathIcon 
-            className={`h-5 w-5 ${loading 
-              ? 'text-gray-400 animate-spin' 
-              : 'text-indigo-600'
-            }`}
-          />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsPrivate(!isPrivate)}
+            className={`
+              flex items-center justify-center
+              w-10 h-10
+              rounded-full
+              transition-all duration-200
+              ${isPrivate 
+                ? 'bg-indigo-100 text-indigo-600' 
+                : 'bg-indigo-50 text-indigo-400 hover:bg-indigo-100 hover:text-indigo-600'
+              }
+            `}
+            title={isPrivate ? "显示商户名称" : "隐藏商户名称"}
+          >
+            {isPrivate ? (
+              <EyeSlashIcon className="h-5 w-5" />
+            ) : (
+              <EyeIcon className="h-5 w-5" />
+            )}
+          </button>
+          <button
+            onClick={fetchRevenue}
+            disabled={loading}
+            className={`
+              flex items-center justify-center
+              w-10 h-10
+              rounded-full
+              transition-all duration-200
+              ${loading 
+                ? 'bg-gray-100 cursor-not-allowed' 
+                : 'bg-indigo-50 hover:bg-indigo-100 active:bg-indigo-200'
+              }
+            `}
+            title="Refresh Data"
+          >
+            <ArrowPathIcon 
+              className={`h-5 w-5 ${loading 
+                ? 'text-gray-400 animate-spin' 
+                : 'text-indigo-600'
+              }`}
+            />
+          </button>
+        </div>
       </div>
 
       <div className="space-y-4 md:space-y-6">
@@ -340,6 +365,7 @@ export default function Home() {
             <MerchantCard
               key={index}
               {...merchant}
+              merchantName={isPrivate ? `商户 ${index + 1}` : merchant.merchantName}
             />
           ))}
         </div>
