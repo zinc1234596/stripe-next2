@@ -240,26 +240,26 @@ export default function Home() {
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* 统计卡片 - 使用不同颜色 */}
-        {Object.keys(convertedTotalRevenue).length > 0 && (
+        {/* 统计卡片 - 使用简化的配色方案 */}
+        {Object.keys(convertedTotalRevenue).length > 0 && dailyTotals.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
               value={formatCurrency(Object.values(convertedTotalRevenue)[0], targetCurrency)}
               icon={<BanknotesIcon className="h-6 w-6" />}
-              color="blue"
+              color="indigo"
             />
             <StatCard
               title="Total Orders"
               value={getTotalOrders()}
               icon={<CreditCardIcon className="h-6 w-6" />}
-              color="purple"
+              color="gray"
             />
             <StatCard
               title="Active Merchants"
               value={merchantsData.length}
               icon={<UserGroupIcon className="h-6 w-6" />}
-              color="pink"
+              color="gray"
             />
             <StatCard
               title="Average Order Value"
@@ -268,14 +268,14 @@ export default function Home() {
                 targetCurrency
               )}
               icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
-              color="orange"
+              color="gray"
             />
             <StatCard
               title="Highest Daily Revenue"
               value={formatCurrency(highestDayTotal, targetCurrency)}
               subtext={highestDay ? moment(highestDay.date).format('MMM D, YYYY') : ''}
               icon={<TrophyIcon className="h-6 w-6" />}
-              color="green"
+              color="gray"
             />
           </div>
         )}

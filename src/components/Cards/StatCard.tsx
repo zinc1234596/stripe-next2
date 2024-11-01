@@ -1,5 +1,8 @@
 import { ReactNode } from 'react';
 
+// Add type for valid colors
+type CardColor = 'blue' | 'purple' | 'pink' | 'orange' | 'green' | 'indigo' | 'gray';
+
 interface StatCardProps {
   title: string;
   value: string | number;
@@ -9,7 +12,7 @@ interface StatCardProps {
     value: number;
     isPositive: boolean;
   };
-  color?: 'blue' | 'purple' | 'pink' | 'orange' | 'green';
+  color?: CardColor;
 }
 
 export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }: StatCardProps) {
@@ -38,6 +41,16 @@ export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }:
       background: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50',
       icon: 'bg-emerald-500/10 text-emerald-600',
       text: 'text-emerald-600',
+    },
+    indigo: {
+      background: 'bg-gradient-to-br from-indigo-50 to-indigo-100/50',
+      icon: 'bg-indigo-500/10 text-indigo-600',
+      text: 'text-indigo-600',
+    },
+    gray: {
+      background: 'bg-gradient-to-br from-gray-50 to-gray-100/50',
+      icon: 'bg-gray-500/10 text-gray-600',
+      text: 'text-gray-600',
     },
   };
 
