@@ -54,7 +54,7 @@ export function MerchantCard({
   }
 
   return (
-    <div className="bg-white/80 backdrop-blur-lg rounded-xl p-4 shadow-sm">
+    <div className="bg-white rounded-lg p-4 shadow-md border-2 border-gray-200 hover:border-gray-300 transition-all">
       <div className="flex items-center justify-between mb-4">
         <div className="w-full">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center justify-between flex-wrap gap-2 px-4">
@@ -111,7 +111,7 @@ export function MerchantCard({
           </div>
           <div className="p-2">
             {viewMode === 'chart' ? (
-              <div className="h-40">
+              <div className="h-52">
                 <RevenueChart
                   data={dailyStats}
                   currency={Object.keys(revenue)[0]}
@@ -120,7 +120,7 @@ export function MerchantCard({
                 />
               </div>
             ) : (
-              <div className="overflow-x-auto max-h-[200px]">
+              <div className="overflow-x-auto max-h-[260px]">
                 <table className="min-w-full text-xs">
                   <thead className="bg-gray-50">
                     <tr>
