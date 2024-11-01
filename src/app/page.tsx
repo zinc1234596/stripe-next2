@@ -1,9 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import moment from "moment-timezone";
 
+interface MerchantRevenue {
+  merchantName: string;
+  revenue: Record<string, number>;
+}
+
 export default function Home() {
-  const [revenue, setRevenue] = useState<Record<string, number>>({});
+  const [merchantsData, setMerchantsData] = useState<MerchantRevenue[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timezone, setTimezone] = useState("Asia/Shanghai");
@@ -21,7 +27,8 @@ export default function Home() {
         throw new Error(data.error || "Failed to fetch revenue");
       }
 
-      setRevenue(data.revenue);
+      setMerchantsData(data.merchants);
+      setTotalRevenue(data.totalRevenue);
       setPeriod(data.period);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -30,7 +37,6 @@ export default function Home() {
     }
   };
 
-  // 获取常用时区列表
   const commonTimezones = [
     "Asia/Shanghai",
     "Asia/Tokyo",
@@ -76,10 +82,24 @@ export default function Home() {
 
           {error && <div className="text-red-500">{error}</div>}
 
-          {Object.keys(revenue).length > 0 && (
-            <div className="bg-white p-4 rounded shadow">
-              <h2 className="text-xl font-bold mb-4">Total Revenue</h2>
-              {Object.entries(revenue).map(([currency, amount]) => (
+          {/* 商户收入列表 */}
+          {merchantsData.map((merchant, index) => (
+            <div key={index} className="bg-white p-4 rounded shadow">
+              <h2 className="text-xl font-bold mb-4">{merchant.merchantName}</h2>
+              {Object.entries(merchant.revenue).map(([currency, amount]) => (
+                <div key={currency} className="flex justify-between py-1">
+                  <span>{currency}:</span>
+                  <span>${amount.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {/* 总收入 */}
+          {Object.keys(totalRevenue).length > 0 && (
+            <div className="bg-white p-4 rounded shadow border-t-4 border-blue-500">
+              <h2 className="text-xl font-bold mb-4">Total Revenue (All Merchants)</h2>
+              {Object.entries(totalRevenue).map(([currency, amount]) => (
                 <div key={currency} className="flex justify-between py-1">
                   <span>{currency}:</span>
                   <span>${amount.toFixed(2)}</span>
