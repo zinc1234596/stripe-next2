@@ -113,7 +113,7 @@ export function MerchantCard({
               <div className="h-40">
                 <RevenueChart
                   data={dailyStats}
-                  currency={getPrimaryCurrency()}
+                  currency={Object.keys(revenue)[0]}
                   compact={true}
                   loading={loading}
                 />

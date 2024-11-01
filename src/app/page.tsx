@@ -294,7 +294,7 @@ export default function Home() {
                 {overviewMode === 'chart' ? (
                   <RevenueChart
                     data={convertedDailyTotals}
-                    currency={getPrimaryCurrency()}
+                    currency={targetCurrency}
                     loading={loading}
                   />
                 ) : (
