@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentMonthRevenue, getMerchantName, getStripeClients, MerchantRevenue } from "@/services/stripe";
+import { getCurrentMonthRevenue, getMerchantName, getStripeClients, MerchantRevenue, getDailyStats } from "@/services/stripe";
 import { getDateRange } from "@/utils/currency";
 import moment from 'moment-timezone';
 
@@ -9,7 +9,6 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const timezone = searchParams.get("timezone") || defaultTimezone;
     
-    // 获取年月参数，默认为当前年月
     const now = moment().tz(timezone);
     const year = parseInt(searchParams.get("year") || now.year().toString());
     const month = parseInt(searchParams.get("month") || now.month().toString());
@@ -25,12 +24,19 @@ export async function GET(request: Request) {
 
     const dateRange = getDateRange(timezone, year, month);
 
-    // 并行获取所有商户的收入数据
+    // 并行获取所有数据
     const merchantsData = await Promise.all(
-      stripeClients.map(async (stripe): Promise<MerchantRevenue> => {
-        const merchantName = await getMerchantName(stripe);
-        const revenue = await getCurrentMonthRevenue(stripe, dateRange);
-        return { merchantName, revenue };
+      stripeClients.map(async (stripe): Promise<{
+        merchantName: string;
+        revenue: Record<string, number>;
+        dailyStats: any[];
+      }> => {
+        const [merchantName, revenue, dailyStats] = await Promise.all([
+          getMerchantName(stripe),
+          getCurrentMonthRevenue(stripe, dateRange),
+          getDailyStats(stripe, dateRange, timezone)
+        ]);
+        return { merchantName, revenue, dailyStats };
       })
     );
 
@@ -42,9 +48,13 @@ export async function GET(request: Request) {
       });
     });
 
+    // 合并每日统计数据
+    const dailyTotals = mergeDailyStats(merchantsData.map(m => m.dailyStats));
+
     return NextResponse.json({ 
       merchants: merchantsData,
       totalRevenue,
+      dailyTotals,
       timezone,
       period: {
         start: dateRange.startDate.toISOString(),
@@ -58,4 +68,32 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+function mergeDailyStats(allDailyStats: any[][]): any[] {
+  const mergedStats: Record<string, any> = {};
+
+  allDailyStats.forEach(merchantStats => {
+    merchantStats.forEach(dailyStat => {
+      if (!mergedStats[dailyStat.date]) {
+        mergedStats[dailyStat.date] = {
+          date: dailyStat.date,
+          orderCount: 0,
+          revenue: {},
+        };
+      }
+
+      // 合并订单数量
+      mergedStats[dailyStat.date].orderCount += dailyStat.orderCount;
+
+      // 合并收入
+      Object.entries(dailyStat.revenue).forEach(([currency, amount]) => {
+        mergedStats[dailyStat.date].revenue[currency] = 
+          (mergedStats[dailyStat.date].revenue[currency] || 0) + (amount as number);
+      });
+    });
+  });
+
+  // 将合并后的数据转换为数组并按日期排序
+  return Object.values(mergedStats).sort((a, b) => a.date.localeCompare(b.date));
 }

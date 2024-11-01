@@ -14,6 +14,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [timezone, setTimezone] = useState("Asia/Shanghai");
   const [period, setPeriod] = useState<{ start: string; end: string } | null>(null);
+  const [dailyTotals, setDailyTotals] = useState<any[]>([]);
   
   // 添加年月选择状态
   const now = moment().tz(timezone);
@@ -41,6 +42,7 @@ export default function Home() {
       setMerchantsData(data.merchants);
       setTotalRevenue(data.totalRevenue);
       setPeriod(data.period);
+      setDailyTotals(data.dailyTotals);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -152,6 +154,39 @@ export default function Home() {
                   <span>${amount.toFixed(2)}</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* 添加每日统计表格 */}
+          {dailyTotals.length > 0 && (
+            <div className="bg-white p-4 rounded shadow mt-6">
+              <h2 className="text-xl font-bold mb-4">Daily Statistics</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="px-4 py-2 text-left">Date</th>
+                      <th className="px-4 py-2 text-left">Orders</th>
+                      <th className="px-4 py-2 text-left">Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyTotals.map((day) => (
+                      <tr key={day.date} className="border-t">
+                        <td className="px-4 py-2">{day.date}</td>
+                        <td className="px-4 py-2">{day.orderCount}</td>
+                        <td className="px-4 py-2">
+                          {Object.entries(day.revenue).map(([currency, amount]) => (
+                            <div key={currency}>
+                              {currency}: ${(amount as number).toFixed(2)}
+                            </div>
+                          ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
