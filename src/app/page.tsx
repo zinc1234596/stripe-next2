@@ -156,23 +156,9 @@ export default function Home() {
 
         {/* 总体数据分析区域 */}
         {(dailyTotals.length > 0 || Object.keys(totalRevenue).length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Revenue Breakdown */}
-            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
-              <div className="flex items-center border-b pb-4">
-                <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <h2 className="text-xl font-bold">Revenue Breakdown</h2>
-              </div>
-              <div className="mt-4">
-                <RevenueBreakdownView 
-                  breakdown={totalBreakdown} 
-                  isOverview={true}
-                />
-              </div>
-            </div>
-
+          <div className="grid grid-cols-12 gap-6">
             {/* 数据视图（图表/表格） */}
-            <div className="bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+            <div className="col-span-8 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center">
                   {overviewMode === 'chart' ? (
@@ -227,6 +213,20 @@ export default function Home() {
                     </table>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Revenue Breakdown */}
+            <div className="col-span-4 bg-white/80 backdrop-blur-lg rounded-xl p-6 shadow-sm">
+              <div className="flex items-center border-b pb-4">
+                <ChartPieIcon className="h-5 w-5 text-gray-400 mr-2" />
+                <h2 className="text-xl font-bold">Revenue Breakdown</h2>
+              </div>
+              <div className="mt-4">
+                <RevenueBreakdownView 
+                  breakdown={totalBreakdown} 
+                  isOverview={true}
+                />
               </div>
             </div>
           </div>
