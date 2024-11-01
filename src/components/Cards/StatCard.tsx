@@ -4,14 +4,15 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: ReactNode;
+  subtext?: string;
   trend?: {
     value: number;
     isPositive: boolean;
   };
-  color?: 'blue' | 'purple' | 'pink' | 'orange';
+  color?: 'blue' | 'purple' | 'pink' | 'orange' | 'green';
 }
 
-export function StatCard({ title, value, icon, trend, color = 'blue' }: StatCardProps) {
+export function StatCard({ title, value, icon, subtext, trend, color = 'blue' }: StatCardProps) {
   const colorStyles = {
     blue: {
       background: 'bg-gradient-to-br from-blue-50 to-blue-100/50',
@@ -33,6 +34,11 @@ export function StatCard({ title, value, icon, trend, color = 'blue' }: StatCard
       icon: 'bg-orange-500/10 text-orange-600',
       text: 'text-orange-600',
     },
+    green: {
+      background: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50',
+      icon: 'bg-emerald-500/10 text-emerald-600',
+      text: 'text-emerald-600',
+    },
   };
 
   return (
@@ -45,6 +51,11 @@ export function StatCard({ title, value, icon, trend, color = 'blue' }: StatCard
       </div>
       <div className="mt-4">
         <div className="text-2xl font-bold text-gray-900">{value}</div>
+        {subtext && (
+          <div className="text-sm mt-1 text-gray-500">
+            {subtext}
+          </div>
+        )}
         {trend && (
           <div className={`text-sm mt-2 flex items-center gap-1 ${trend.isPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
             {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%

@@ -16,7 +16,8 @@ import {
   TableCellsIcon,
   ChartBarIcon,
   ChartPieIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline';
 
 interface MerchantRevenue {
@@ -103,6 +104,23 @@ export default function Home() {
     return Object.keys(totalRevenue)[0] || 'USD';
   };
 
+  // 计算最高收入日的数据
+  const getHighestRevenueDay = () => {
+    if (!dailyTotals.length) return null;
+
+    return dailyTotals.reduce((highest, current) => {
+      const currentTotal = Object.values(current.revenue).reduce((sum, amount) => sum + amount, 0);
+      const highestTotal = Object.values(highest.revenue).reduce((sum, amount) => sum + amount, 0);
+      
+      return currentTotal > highestTotal ? current : highest;
+    }, dailyTotals[0]);
+  };
+
+  const highestDay = getHighestRevenueDay();
+  const highestDayTotal = highestDay 
+    ? Object.values(highestDay.revenue).reduce((sum, amount) => sum + amount, 0)
+    : 0;
+
   return (
     <DashboardLayout>
       <div className="flex items-center justify-between mb-6">
@@ -157,7 +175,7 @@ export default function Home() {
 
         {/* 统计卡片 - 使用不同颜色 */}
         {Object.keys(totalRevenue).length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
               value={`$${Object.values(totalRevenue)[0].toFixed(2)}`}
@@ -181,6 +199,13 @@ export default function Home() {
               value={`$${(Object.values(totalRevenue)[0] / getTotalOrders()).toFixed(2)}`}
               icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
               color="orange"
+            />
+            <StatCard
+              title="Highest Daily Revenue"
+              value={`$${highestDayTotal.toFixed(2)}`}
+              subtext={highestDay ? moment(highestDay.date).format('MMM D, YYYY') : ''}
+              icon={<TrophyIcon className="h-6 w-6" />}
+              color="green"
             />
           </div>
         )}
