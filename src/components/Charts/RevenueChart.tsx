@@ -11,16 +11,15 @@ interface RevenueChartProps {
 }
 
 export function RevenueChart({ data, currency, compact = false, loading = false }: RevenueChartProps) {
-  const chartData = data.map(day => ({
-    date: day.date,
-    revenue: Object.entries(day.revenue).reduce((total, [curr, amount]) => {
-      if (currency) {
-        return curr === currency ? amount : total;
-      }
-      return total + amount;
-    }, 0),
-    displayDate: moment(day.date).format('DD')
-  }));
+  const chartData = data.map(day => {
+    const revenue = day.revenue[currency] || 0;
+    
+    return {
+      date: day.date,
+      revenue: revenue,
+      displayDate: moment(day.date).format('DD')
+    };
+  });
 
   const calculateTickCount = () => {
     if (compact) {
