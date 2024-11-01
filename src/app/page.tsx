@@ -24,6 +24,7 @@ import {
 import { fetchExchangeRates, convertRevenue, mergeAndConvertRevenues } from "@/utils/currency";
 import { formatCurrency } from '@/utils/currencySymbols';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend as RechartsLegend } from 'recharts';
+import { PAYMENT_TYPES } from "@/config/paymentTypes";
 
 interface MerchantRevenue {
   merchantName: string;
@@ -216,6 +217,11 @@ export default function Home() {
 
   // Pie chart colors
   const COLORS = ['#818CF8', '#34D399', '#A855F7', '#60A5FA', '#F472B6'];
+
+  const getPaymentTypeName = (typeId: string) => {
+    const paymentType = PAYMENT_TYPES.find(type => type.id === typeId);
+    return paymentType?.name || typeId;
+  };
 
   return (
     <DashboardLayout>
@@ -440,7 +446,9 @@ export default function Home() {
                             className="w-3 h-3 rounded-full mr-2" 
                             style={{ backgroundColor: COLORS[index % COLORS.length] }}
                           />
-                          <span className="text-sm text-gray-600">{entry.name}</span>
+                          <span className="text-sm text-gray-600">
+                            {getPaymentTypeName(entry.name)}
+                          </span>
                         </div>
                         <span className="text-sm font-medium">
                           {formatCurrency(entry.value, targetCurrency)}
