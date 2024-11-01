@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     
     const now = moment().tz(timezone);
     const year = parseInt(searchParams.get("year") || now.year().toString());
-    const month = parseInt(searchParams.get("month") || now.month().toString());
+    const month = parseInt(searchParams.get("month") || (now.month() + 1).toString());
 
     const stripeClients = getStripeClients();
 
@@ -29,24 +29,37 @@ export async function GET(request: Request) {
       stripeClients.map(async (stripe) => {
         const [merchantName, revenue, dailyStats, revenueBreakdown] = await Promise.all([
           getMerchantName(stripe),
-          getCurrentMonthRevenue(stripe, dateRange),
-          getDailyStats(stripe, dateRange, timezone),
-          getRevenueBreakdown(stripe, dateRange)
+          getCurrentMonthRevenue(stripe, dateRange).catch(err => {
+            console.error(`Error getting revenue for merchant: ${err}`);
+            return {};
+          }),
+          getDailyStats(stripe, dateRange, timezone).catch(err => {
+            console.error(`Error getting daily stats: ${err}`);
+            return [];
+          }),
+          getRevenueBreakdown(stripe, dateRange).catch(err => {
+            console.error(`Error getting revenue breakdown: ${err}`);
+            return { oneTime: {}, subscription: { monthly: {}, annual: {} } };
+          })
         ]);
         return { merchantName, revenue, dailyStats, revenueBreakdown };
       })
     );
 
-    // 计算总收入
+    // 计算总收入 - 使用 dailyTotals 来计算，因为它是准确的
     const totalRevenue: Record<string, number> = {};
-    merchantsData.forEach(({ revenue }) => {
-      Object.entries(revenue).forEach(([currency, amount]) => {
-        totalRevenue[currency] = (totalRevenue[currency] || 0) + amount;
+    const dailyTotals = mergeDailyStats(merchantsData.map(m => m.dailyStats));
+
+    // 通过 dailyTotals 计算总收入
+    dailyTotals.forEach(dailyStat => {
+      Object.entries(dailyStat.revenue).forEach(([currency, amount]) => {
+        totalRevenue[currency] = (totalRevenue[currency] || 0) + (amount as number);
       });
     });
 
-    // 合并每日统计数据
-    const dailyTotals = mergeDailyStats(merchantsData.map(m => m.dailyStats));
+    // 添加验证日志
+    console.log('Daily totals:', dailyTotals);
+    console.log('Calculated total revenue:', totalRevenue);
 
     // 合并所有商户的收入明细
     const totalBreakdown = {
@@ -74,6 +87,15 @@ export async function GET(request: Request) {
         totalBreakdown.subscription.annual[currency] = 
           (totalBreakdown.subscription.annual[currency] || 0) + amount;
       });
+    });
+
+    console.log('Revenue data:', {
+      totalRevenue,
+      merchantCount: merchantsData.length,
+      period: {
+        start: dateRange.startDate.toISOString(),
+        end: dateRange.endDate.toISOString(),
+      }
     });
 
     return NextResponse.json({ 
