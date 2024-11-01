@@ -37,13 +37,13 @@ export const PAYMENT_TYPES: PaymentType[] = [
   }
 ];
 
-// 辅助函数：根据 interval 获取支付类型
+// Helper function: Get payment type by interval
 export function getPaymentTypeByInterval(interval?: string): PaymentType | undefined {
   if (!interval) return PAYMENT_TYPES[0]; // oneTime
   return PAYMENT_TYPES.find(type => type.interval === interval);
 }
 
-// 辅助函数：获取所有订阅类型的 ID
+// Helper function: Get all subscription type IDs
 export function getSubscriptionTypeIds(): string[] {
   return PAYMENT_TYPES.filter(type => type.interval).map(type => type.id);
 }

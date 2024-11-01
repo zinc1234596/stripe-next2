@@ -74,7 +74,7 @@ export function MerchantCard({
       </div>
 
       <div className="space-y-3">
-        {/* 收入明细 */}
+        {/* Revenue Details */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="flex items-center p-2 border-b">
             <ChartPieIcon className="h-4 w-4 text-gray-400 mr-1" />
@@ -88,7 +88,7 @@ export function MerchantCard({
           </div>
         </div>
 
-        {/* 数据视图切换 */}
+        {/* View Mode Switch */}
         <div className="bg-white rounded-lg shadow-sm">
           <div className="flex items-center justify-between p-2 border-b">
             <div className="flex items-center">

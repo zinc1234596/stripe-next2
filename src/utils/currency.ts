@@ -1,6 +1,6 @@
 import moment from 'moment-timezone';
 
-// 处理货币相关的工具函数
+// Currency-related utility functions
 export function convertToProperUnits(currency: string, amount: number): number {
   const zeroDenominationCurrencies = ["JPY", "KRW", "VND"];
   const convertedAmount = zeroDenominationCurrencies.includes(currency)
@@ -89,7 +89,7 @@ interface ExchangeRateResponse {
   date: string;
 }
 
-// 获取汇率数据
+// Get exchange rate data
 export async function fetchExchangeRates(baseCurrency: string = 'USD'): Promise<Record<string, number>> {
   try {
     const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
@@ -104,7 +104,7 @@ export async function fetchExchangeRates(baseCurrency: string = 'USD'): Promise<
   }
 }
 
-// 转换货币金额
+// Convert currency amount
 export function convertCurrency(
   amount: number,
   fromCurrency: string,
@@ -118,7 +118,7 @@ export function convertCurrency(
   return Number((amountInUSD * rates[toCurrency]).toFixed(2));
 }
 
-// 转换收入记录到指定货币
+// Convert revenue records to specified currency
 export function convertRevenue(
   revenue: Record<string, number>,
   targetCurrency: string,
@@ -131,7 +131,7 @@ export function convertRevenue(
   return result;
 }
 
-// 合并多个收入记录并转换到指定货币
+// Merge multiple revenue records and convert to specified currency
 export function mergeAndConvertRevenues(
   revenues: Record<string, number>[],
   targetCurrency: string,

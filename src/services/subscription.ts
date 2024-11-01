@@ -182,7 +182,7 @@ export async function getEstimatedRenewalRevenue(stripe: Stripe, tz: string) {
   };
 }
 
-// 辅助函数
+// Helper function
 function roundAmounts(amounts: Record<string, number>): Record<string, number> {
   return Object.fromEntries(
     Object.entries(amounts).map(([currency, amount]) => [

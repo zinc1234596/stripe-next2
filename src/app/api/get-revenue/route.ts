@@ -3,9 +3,9 @@ import { getCurrentMonthRevenue, getMerchantName, getStripeClients, getRevenueBr
 import { getDateRange } from "@/utils/currency";
 import moment from 'moment-timezone';
 
-export const maxDuration = 60; // 设置更长的超时时间，单位秒
+export const maxDuration = 60; // Set longer timeout duration in seconds
 
-// 如果使用 Edge Runtime，可以添加：
+// If using Edge Runtime, you can add:
 export const runtime = 'edge';
 
 export async function GET(request: Request) {
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
     const dateRange = getDateRange(timezone, year, month);
 
-    // 并行获取所有数据
+    // Fetch all data in parallel
     const merchantsData = await Promise.all(
       stripeClients.map(async (stripe) => {
         const [merchantName, revenue, dailyStats, revenueBreakdown] = await Promise.all([
@@ -51,22 +51,22 @@ export async function GET(request: Request) {
       })
     );
 
-    // 计算总收入 - 使用 dailyTotals 来计算，因为它是准确的
+    // Calculate total revenue - using dailyTotals for accuracy
     const totalRevenue: Record<string, number> = {};
     const dailyTotals = mergeDailyStats(merchantsData.map(m => m.dailyStats));
 
-    // 通过 dailyTotals 计算总收入
+    // Calculate total revenue through dailyTotals
     dailyTotals.forEach(dailyStat => {
       Object.entries(dailyStat.revenue).forEach(([currency, amount]) => {
         totalRevenue[currency] = (totalRevenue[currency] || 0) + (amount as number);
       });
     });
 
-    // 添加验证日志
+    // Add validation logs
     console.log('Daily totals:', dailyTotals);
     console.log('Calculated total revenue:', totalRevenue);
 
-    // 合并所有商户的收入明细
+    // Merge revenue details from all merchants
     const totalBreakdown = {
       oneTime: {} as Record<string, number>,
       subscription: {
@@ -76,18 +76,18 @@ export async function GET(request: Request) {
     };
 
     merchantsData.forEach(({ revenueBreakdown }) => {
-      // 合并一次性付款
+      // Merge one-time payments
       Object.entries(revenueBreakdown.oneTime).forEach(([currency, amount]) => {
         totalBreakdown.oneTime[currency] = (totalBreakdown.oneTime[currency] || 0) + amount;
       });
 
-      // 合并月付订阅
+      // Merge monthly subscriptions
       Object.entries(revenueBreakdown.subscription.monthly).forEach(([currency, amount]) => {
         totalBreakdown.subscription.monthly[currency] = 
           (totalBreakdown.subscription.monthly[currency] || 0) + amount;
       });
 
-      // 合并年付订阅
+      // Merge annual subscriptions
       Object.entries(revenueBreakdown.subscription.annual).forEach(([currency, amount]) => {
         totalBreakdown.subscription.annual[currency] = 
           (totalBreakdown.subscription.annual[currency] || 0) + amount;
@@ -136,10 +136,10 @@ function mergeDailyStats(allDailyStats: any[][]): any[] {
         };
       }
 
-      // 合并订单数量
+      // Merge order count
       mergedStats[dailyStat.date].orderCount += dailyStat.orderCount;
 
-      // 合并收入
+      // Merge revenue
       Object.entries(dailyStat.revenue).forEach(([currency, amount]) => {
         mergedStats[dailyStat.date].revenue[currency] = 
           (mergedStats[dailyStat.date].revenue[currency] || 0) + (amount as number);
@@ -147,6 +147,6 @@ function mergeDailyStats(allDailyStats: any[][]): any[] {
     });
   });
 
-  // 将合并后的数据转换为数组并按日期排序
+  // Convert merged data to array and sort by date
   return Object.values(mergedStats).sort((a, b) => a.date.localeCompare(b.date));
 }

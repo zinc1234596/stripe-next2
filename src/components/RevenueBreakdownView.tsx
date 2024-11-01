@@ -14,7 +14,7 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
   const [showLeftButton, setShowLeftButton] = useState(false);
   const [showRightButton, setShowRightButton] = useState(false);
 
-  // 检查某个付款类型是否有数据
+  // Check if a payment type has data
   const hasDataForPaymentType = (typeId: string) => {
     if (typeId === 'oneTime') {
       return Object.keys(breakdown.oneTime).length > 0;
@@ -22,10 +22,10 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
     return Object.keys(breakdown.subscription[typeId] || {}).length > 0;
   };
 
-  // 获取所有有数据的付款类型
+  // Get all payment types that have data
   const activeTypes = PAYMENT_TYPES.filter(type => hasDataForPaymentType(type.id));
 
-  // 检查滚动按钮的显示状态
+  // Check scroll buttons visibility
   const checkScroll = () => {
     if (isOverview) return;
     const container = scrollContainerRef.current;
@@ -47,7 +47,7 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
     }
   }, [breakdown, isOverview]);
 
-  // 处理滚动
+  // Handle scroll
   const handleScroll = (direction: 'left' | 'right') => {
     const container = scrollContainerRef.current;
     if (container) {
@@ -59,14 +59,14 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
     }
   };
 
-  // 监听滚动事件
+  // Listen to scroll event
   const handleScrollEvent = () => {
     if (!isOverview) {
       checkScroll();
     }
   };
 
-  // 渲染付款类型的内容
+  // Render payment type content
   const renderPaymentTypeContent = (type: typeof PAYMENT_TYPES[0]) => {
     const data = type.id === 'oneTime' 
       ? breakdown.oneTime 
@@ -81,7 +81,7 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
   };
 
   if (isOverview) {
-    // 总览模式：竖直排列
+    // Total mode: vertical arrangement
     return (
       <div className="grid grid-cols-1 gap-4">
         {activeTypes.map(type => (
@@ -99,7 +99,7 @@ export function RevenueBreakdownView({ breakdown, isOverview = false }: RevenueB
     );
   }
 
-  // 商户卡片模式：水平滚动
+  // Merchant card mode: horizontal scrolling
   return (
     <div className="relative">
       {showScrollButtons && showLeftButton && (

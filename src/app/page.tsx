@@ -56,21 +56,21 @@ export default function Home() {
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
   const [isPrivate, setIsPrivate] = useState(false);
 
-  // 支持的货币列表
+  // Supported currency list
   const supportedCurrencies = ['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'HKD'];
 
-  // 获取汇率数据
+  // Get exchange rates data
   useEffect(() => {
     fetchExchangeRates(targetCurrency).then(setExchangeRates);
   }, [targetCurrency]);
 
-  // 转换收入数据
+  // Convert revenue data
   const convertedTotalRevenue = useMemo(() => {
     if (!Object.keys(exchangeRates).length) return totalRevenue;
     return convertRevenue(totalRevenue, targetCurrency, exchangeRates);
   }, [totalRevenue, targetCurrency, exchangeRates]);
 
-  // 转换每个商户的收入数据
+  // Convert each merchant's revenue data
   const convertedMerchantsData = useMemo(() => {
     if (!Object.keys(exchangeRates).length) return merchantsData;
     return merchantsData.map(merchant => ({
@@ -83,7 +83,7 @@ export default function Home() {
     }));
   }, [merchantsData, targetCurrency, exchangeRates]);
 
-  // 转换每日总收入数据
+  // Convert daily total revenue data
   const convertedDailyTotals = useMemo(() => {
     if (!Object.keys(exchangeRates).length) return dailyTotals;
     return dailyTotals.map(day => ({
@@ -113,7 +113,7 @@ export default function Home() {
       setLoading(true);
       setError(null);
       
-      // 清空当前数据
+      // Clear current data
       setMerchantsData([]);
       setTotalRevenue({});
       setPeriod(null);
@@ -148,17 +148,17 @@ export default function Home() {
     }
   };
 
-  // 计算总订单数
+  // Calculate total orders
   const getTotalOrders = () => {
     return dailyTotals.reduce((sum, day) => sum + day.orderCount, 0);
   };
 
-  // 获取主要货币
+  // Get primary currency
   const getPrimaryCurrency = () => {
     return Object.keys(totalRevenue)[0] || 'USD';
   };
 
-  // 计算最高收入日的数据
+  // Calculate data for the highest revenue day
   const getHighestRevenueDay = () => {
     if (!dailyTotals.length) return null;
 
@@ -175,35 +175,34 @@ export default function Home() {
     ? Object.values(highestDay.revenue).reduce((sum, amount) => sum + amount, 0)
     : 0;
 
-  // 添加处理 Revenue Breakdown 数据的函数
+  // Add function to handle Revenue Breakdown data
   const getRevenueBreakdownData = () => {
     const data = [];
     
-    // 添加一次性收入数据
+    // Add one-time revenue data
     const oneTimeTotal = Object.values(totalBreakdown.oneTime)[0] || 0;
     if (oneTimeTotal > 0) {
       data.push({
-        name: '一次性收入',
+        name: 'One-time Revenue',
         value: oneTimeTotal,
       });
     }
 
-    // 添加订阅收入数据
+    // Add subscription revenue data
     Object.entries(totalBreakdown.subscription).forEach(([type, revenue]) => {
       const amount = Object.values(revenue)[0] || 0;
       if (amount > 0) {
         let name = type;
         switch (type) {
           case 'monthly':
-            name = '月度订阅';
+            name = 'Monthly Subscription';
             break;
           case 'quarterly':
-            name = '季度订阅';
+            name = 'Quarterly Subscription';
             break;
           case 'yearly':
-            name = '年度订阅';
+            name = 'Annual Subscription';
             break;
-          // 可以添加其他类型的映射
         }
         data.push({
           name,
@@ -215,7 +214,7 @@ export default function Home() {
     return data;
   };
 
-  // 饼的颜色
+  // Pie chart colors
   const COLORS = ['#818CF8', '#34D399', '#A855F7', '#60A5FA', '#F472B6'];
 
   return (
@@ -235,7 +234,7 @@ export default function Home() {
                 : 'bg-purple-50 text-purple-400 hover:bg-purple-100 hover:text-purple-600'
               }
             `}
-            title={isPrivate ? "显示商户名称" : "隐藏商户名称"}
+            title={isPrivate ? "Show Merchant Names" : "Hide Merchant Names"}
           >
             {isPrivate ? (
               <EyeSlashIcon className="h-5 w-5" />
@@ -269,7 +268,7 @@ export default function Home() {
       </div>
 
       <div className="space-y-4 md:space-y-6">
-        {/* 参数选择区域 - 移动端优化 */}
+        {/* Parameter selection area - mobile optimization */}
         <div className="bg-white/80 backdrop-blur-lg rounded-lg shadow-sm">
           <div className="p-3">
             <DateTimeSelector
@@ -294,7 +293,7 @@ export default function Home() {
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* 统计卡片 */}
+        {/* Statistics card */}
         {Object.keys(convertedTotalRevenue).length > 0 && dailyTotals.length > 0 && (
           <div className="grid grid-cols-5 gap-2">
             <StatCard
@@ -340,10 +339,10 @@ export default function Home() {
           </div>
         )}
 
-        {/* 总体数据分析区域 - 移动端垂直堆叠 */}
+        {/* Overall data analysis area - mobile vertical stacking */}
         {(dailyTotals.length > 0 || Object.keys(totalRevenue).length > 0) && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-            {/* 数据视图（图表/表格） */}
+            {/* Data view (chart/table) */}
             <div className="lg:col-span-12 xl:col-span-8 bg-white/80 backdrop-blur-lg rounded-xl p-4 md:p-6 shadow-sm">
               <div className="flex items-center justify-between border-b pb-4">
                 <div className="flex items-center">
@@ -455,13 +454,13 @@ export default function Home() {
           </div>
         )}
 
-        {/* 商户列表 - 移动端单列 */}
+        {/* Merchant list - mobile single column */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {convertedMerchantsData.map((merchant, index) => (
             <MerchantCard
               key={index}
               {...merchant}
-              merchantName={isPrivate ? `商户 ${index + 1}` : merchant.merchantName}
+              merchantName={isPrivate ? `Merchant ${index + 1}` : merchant.merchantName}
             />
           ))}
         </div>

@@ -84,7 +84,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
 
   return (
     <div className="flex flex-col w-full">
-      {/* 修改按钮布局和样式 */}
+      {/* Modified button layout and styles */}
       <div className={`flex flex-wrap gap-2 mb-2 ${compact ? 'px-2' : 'px-4'}`}>
         <button
           onClick={() => toggleLine('revenue')}
@@ -94,7 +94,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               : 'bg-gray-100 text-gray-500'
           }`}
         >
-          每日收入
+          Daily Revenue
         </button>
         <button
           onClick={() => toggleLine('orderCount')}
@@ -104,7 +104,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               : 'bg-gray-100 text-gray-500'
           }`}
         >
-          每日订单
+          Daily Orders
         </button>
         <button
           onClick={() => toggleLine('cumulativeRevenue')}
@@ -114,7 +114,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               : 'bg-gray-100 text-gray-500'
           }`}
         >
-          累计收入
+          Total Revenue
         </button>
         <button
           onClick={() => toggleLine('cumulativeOrders')}
@@ -124,7 +124,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               : 'bg-gray-100 text-gray-500'
           }`}
         >
-          累计订单
+          Total Orders
         </button>
       </div>
 
@@ -192,13 +192,13 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
               formatter={(value: number, name: string) => {
                 switch (name) {
                   case 'revenue':
-                    return [formatCurrency(value, currency), '每日收入'];
+                    return [formatCurrency(value, currency), 'Daily Revenue'];
                   case 'orderCount':
-                    return [value, '每日订单'];
+                    return [value, 'Daily Orders'];
                   case 'cumulativeRevenue':
-                    return [formatCurrency(value, currency), '累计收入'];
+                    return [formatCurrency(value, currency), 'Total Revenue'];
                   case 'cumulativeOrders':
-                    return [value, '累计订单'];
+                    return [value, 'Total Orders'];
                   default:
                     return [value, name];
                 }

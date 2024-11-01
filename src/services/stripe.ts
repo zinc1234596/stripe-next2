@@ -84,13 +84,13 @@ export function getStripeClients(): Stripe[] {
   return stripeClients;
 }
 
-// 添加新的接口定义
+// Add new interface definition
 interface TimeSlice {
   start: number;
   end: number;
 }
 
-// 添加时间分片函数
+// Add time slicing function
 function createTimeSlices(startDate: Date, endDate: Date, sliceCount: number = 4): TimeSlice[] {
   const totalTime = endDate.getTime() - startDate.getTime();
   const sliceSize = Math.floor(totalTime / sliceCount);
@@ -101,7 +101,7 @@ function createTimeSlices(startDate: Date, endDate: Date, sliceCount: number = 4
   }));
 }
 
-// 修改 getDailyStats 函数，支持并行请求
+// Modify getDailyStats function to support parallel requests
 export async function getDailyStats(
   stripe: Stripe,
   dateRange: DateRange,
@@ -109,7 +109,7 @@ export async function getDailyStats(
 ): Promise<DailyStats[]> {
   const dailyStats: Record<string, DailyStats> = {};
   
-  // 初始化每日数据
+  // Initialize daily data
   const startDate = moment(dateRange.startDate).tz(timezone);
   const endDate = moment(dateRange.endDate).tz(timezone);
   
@@ -122,10 +122,10 @@ export async function getDailyStats(
     };
   }
 
-  // 创建时间分片
+  // Create time slices
   const timeSlices = createTimeSlices(dateRange.startDate, dateRange.endDate);
   
-  // 并行请求每个时间分片的数据
+  // Parallel requests for data of each time slice
   const slicePromises = timeSlices.map(async (slice) => {
     const chargesBySlice: Stripe.Charge[] = [];
     let hasMore = true;
@@ -151,10 +151,10 @@ export async function getDailyStats(
     return chargesBySlice;
   });
 
-  // 等待所有分片数据获取完成
+  // Wait for all slices data to be fetched
   const allCharges = (await Promise.all(slicePromises)).flat();
 
-  // 处理获取到的数据
+  // Process the fetched data
   allCharges.forEach((charge) => {
     if (charge.status === "succeeded" && !charge.refunded) {
       const chargeDate = moment.unix(charge.created).tz(timezone).format('YYYY-MM-DD');
@@ -172,7 +172,7 @@ export async function getDailyStats(
   return Object.values(dailyStats).sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// 同样修改 getRevenueBreakdown 函数
+// Modify getRevenueBreakdown function
 export async function getRevenueBreakdown(
   stripe: Stripe,
   dateRange: DateRange
@@ -205,7 +205,7 @@ export async function getRevenueBreakdown(
         expand: ['data.invoice'],
       });
 
-      // 并行获取订阅信息
+      // Parallel get subscription information
       const chargesWithSubs = await Promise.all(
         charges.data.map(async (charge) => {
           const invoice = charge.invoice as Stripe.Invoice;
@@ -231,7 +231,7 @@ export async function getRevenueBreakdown(
 
   const allCharges = (await Promise.all(slicePromises)).flat();
 
-  // 处理所有数据
+  // Process all data
   allCharges.forEach(({charge, subscription}) => {
     if (charge.status !== "succeeded" || charge.refunded) return;
 
@@ -265,7 +265,7 @@ export async function getAnalyticsData(stripe: Stripe, startDate: Date, endDate:
     limit: 100,
   });
 
-  // 按日期组织数据
+  // Organize data by date
   const dailyData: { [key: string]: AnalyticsData } = {};
   let cumulativeRevenue = 0;
 
@@ -287,7 +287,7 @@ export async function getAnalyticsData(stripe: Stripe, startDate: Date, endDate:
     }
   });
 
-  // 计算累计收入
+  // Calculate cumulative revenue
   const sortedDates = Object.keys(dailyData).sort();
   sortedDates.forEach((date) => {
     cumulativeRevenue += dailyData[date].revenue;
@@ -297,4 +297,4 @@ export async function getAnalyticsData(stripe: Stripe, startDate: Date, endDate:
   return Object.values(dailyData);
 }
 
-// ... 其他 Stripe 相关函数 
+// ... Other Stripe related functions ...
