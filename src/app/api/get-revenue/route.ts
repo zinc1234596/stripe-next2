@@ -6,7 +6,7 @@ import moment from 'moment-timezone';
 export const maxDuration = 60; // Set longer timeout duration in seconds
 
 // If using Edge Runtime, you can add:
-// export const runtime = 'edge';
+export const runtime = 'edge';
 
 export async function GET(request: Request) {
   try {
