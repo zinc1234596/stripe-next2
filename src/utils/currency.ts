@@ -73,4 +73,12 @@ export function convertTotalPayoutsToCNY(
     }
   });
   return Number(totalCNY.toFixed(2));
+}
+
+export function getDateRange(timezone: string, year: number, month: number): DateRange {
+  const date = moment().tz(timezone).year(year).month(month);
+  return {
+    startDate: date.clone().startOf("month").toDate(),
+    endDate: date.clone().endOf("month").toDate(),
+  };
 } 

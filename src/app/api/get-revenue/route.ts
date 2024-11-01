@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
 import { getCurrentMonthRevenue, getMerchantName, getStripeClients, MerchantRevenue } from "@/services/stripe";
-import { getCurrentMonthDateRange } from "@/utils/currency";
+import { getDateRange } from "@/utils/currency";
+import moment from 'moment-timezone';
 
 export async function GET(request: Request) {
   try {
     const defaultTimezone = process.env.DEFAULT_TIMEZONE || "Asia/Shanghai";
     const { searchParams } = new URL(request.url);
     const timezone = searchParams.get("timezone") || defaultTimezone;
+    
+    // 获取年月参数，默认为当前年月
+    const now = moment().tz(timezone);
+    const year = parseInt(searchParams.get("year") || now.year().toString());
+    const month = parseInt(searchParams.get("month") || now.month().toString());
 
-    // 获取所有 Stripe 客户端
     const stripeClients = getStripeClients();
 
     if (stripeClients.length === 0) {
@@ -18,7 +23,7 @@ export async function GET(request: Request) {
       );
     }
 
-    const dateRange = getCurrentMonthDateRange(timezone);
+    const dateRange = getDateRange(timezone, year, month);
 
     // 并行获取所有商户的收入数据
     const merchantsData = await Promise.all(

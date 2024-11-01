@@ -14,13 +14,24 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [timezone, setTimezone] = useState("Asia/Shanghai");
   const [period, setPeriod] = useState<{ start: string; end: string } | null>(null);
+  
+  // 添加年月选择状态
+  const now = moment().tz(timezone);
+  const [selectedYear, setSelectedYear] = useState(now.year());
+  const [selectedMonth, setSelectedMonth] = useState(now.month());
 
   const fetchRevenue = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/get-revenue?timezone=${encodeURIComponent(timezone)}`);
+      const response = await fetch(
+        `/api/get-revenue?` + 
+        `timezone=${encodeURIComponent(timezone)}` +
+        `&year=${selectedYear}` +
+        `&month=${selectedMonth}`
+      );
+      
       const data = await response.json();
 
       if (!response.ok) {
@@ -37,6 +48,15 @@ export default function Home() {
     }
   };
 
+  // 生成年份选项（前后5年）
+  const years = Array.from(
+    { length: 11 },
+    (_, i) => now.year() - 5 + i
+  );
+
+  // 生成月份选项
+  const months = moment.months();
+
   const commonTimezones = [
     "Asia/Shanghai",
     "Asia/Tokyo",
@@ -48,10 +68,11 @@ export default function Home() {
   return (
     <main className="p-8">
       <div className="max-w-4xl mx-auto space-y-6">
-        <h1 className="text-2xl font-bold">Current Month Revenue</h1>
+        <h1 className="text-2xl font-bold">Revenue Analytics</h1>
 
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 flex-wrap gap-2">
+            {/* 时区选择 */}
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
@@ -60,6 +81,32 @@ export default function Home() {
               {commonTimezones.map((tz) => (
                 <option key={tz} value={tz}>
                   {tz}
+                </option>
+              ))}
+            </select>
+
+            {/* 年份选择 */}
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="p-2 border rounded"
+            >
+              {years.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+
+            {/* 月份选择 */}
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="p-2 border rounded"
+            >
+              {months.map((month, index) => (
+                <option key={month} value={index}>
+                  {month}
                 </option>
               ))}
             </select>
