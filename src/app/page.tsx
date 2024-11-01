@@ -155,28 +155,32 @@ export default function Home() {
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {/* 统计卡片 - 移动端两列 */}
+        {/* 统计卡片 - 使用不同颜色 */}
         {Object.keys(totalRevenue).length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <StatCard
               title="Total Revenue"
               value={`$${Object.values(totalRevenue)[0].toFixed(2)}`}
               icon={<BanknotesIcon className="h-6 w-6" />}
+              color="blue"
             />
             <StatCard
               title="Total Orders"
               value={getTotalOrders()}
               icon={<CreditCardIcon className="h-6 w-6" />}
+              color="purple"
             />
             <StatCard
               title="Active Merchants"
               value={merchantsData.length}
               icon={<UserGroupIcon className="h-6 w-6" />}
+              color="pink"
             />
             <StatCard
               title="Average Order Value"
               value={`$${(Object.values(totalRevenue)[0] / getTotalOrders()).toFixed(2)}`}
               icon={<ArrowTrendingUpIcon className="h-6 w-6" />}
+              color="orange"
             />
           </div>
         )}

@@ -60,14 +60,14 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#6366F1" stopOpacity={0.1}/>
-              <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#818CF8" stopOpacity={0.2}/>
+              <stop offset="95%" stopColor="#818CF8" stopOpacity={0}/>
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
           <XAxis 
             dataKey="displayDate"
-            stroke="#6B7280"
+            stroke="#94A3B8"
             ticks={generateTicks().map(index => chartData[index].displayDate)}
             interval={0}
             tickSize={compact ? 2 : 5}
@@ -75,7 +75,7 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
             height={20}
           />
           <YAxis 
-            stroke="#6B7280"
+            stroke="#94A3B8"
             tickSize={compact ? 2 : 5}
             tick={{ fontSize: compact ? 10 : 12 }}
             width={compact ? 30 : 40}
@@ -83,10 +83,11 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
           <Tooltip
             contentStyle={{
               backgroundColor: 'white',
-              borderRadius: '0.5rem',
+              borderRadius: '0.75rem',
               border: 'none',
-              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
               fontSize: compact ? '12px' : '14px',
+              padding: '8px 12px',
             }}
             formatter={(value: number) => [`$${value.toFixed(2)}`, 'Revenue']}
             labelFormatter={(label) => `Day ${label}`}
@@ -94,7 +95,8 @@ export function RevenueChart({ data, currency, compact = false, loading = false 
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#6366F1"
+            stroke="#818CF8"
+            strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorRevenue)"
           />
