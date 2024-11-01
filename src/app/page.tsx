@@ -5,6 +5,13 @@ import moment from "moment-timezone";
 interface MerchantRevenue {
   merchantName: string;
   revenue: Record<string, number>;
+  dailyStats: DailyStats[];
+}
+
+interface DailyStats {
+  date: string;
+  orderCount: number;
+  revenue: Record<string, number>;
 }
 
 export default function Home() {
@@ -20,6 +27,9 @@ export default function Home() {
   const now = moment().tz(timezone);
   const [selectedYear, setSelectedYear] = useState(now.year());
   const [selectedMonth, setSelectedMonth] = useState(now.month());
+
+  // 添加展开/折叠状态
+  const [expandedMerchant, setExpandedMerchant] = useState<string | null>(null);
 
   const fetchRevenue = async () => {
     try {
@@ -133,14 +143,62 @@ export default function Home() {
 
           {/* 商户收入列表 */}
           {merchantsData.map((merchant, index) => (
-            <div key={index} className="bg-white p-4 rounded shadow">
-              <h2 className="text-xl font-bold mb-4">{merchant.merchantName}</h2>
-              {Object.entries(merchant.revenue).map(([currency, amount]) => (
-                <div key={currency} className="flex justify-between py-1">
-                  <span>{currency}:</span>
-                  <span>${amount.toFixed(2)}</span>
+            <div key={index} className="bg-white p-4 rounded shadow space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-bold">{merchant.merchantName}</h2>
+                <button
+                  onClick={() => setExpandedMerchant(
+                    expandedMerchant === merchant.merchantName ? null : merchant.merchantName
+                  )}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  {expandedMerchant === merchant.merchantName ? 'Hide Details' : 'Show Details'}
+                </button>
+              </div>
+
+              {/* 商户总收入 */}
+              <div className="space-y-2">
+                <h3 className="font-semibold">Total Revenue</h3>
+                {Object.entries(merchant.revenue).map(([currency, amount]) => (
+                  <div key={currency} className="flex justify-between py-1">
+                    <span>{currency}:</span>
+                    <span>${amount.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* 商户每日统计 */}
+              {expandedMerchant === merchant.merchantName && (
+                <div className="mt-4">
+                  <h3 className="font-semibold mb-2">Daily Statistics</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="px-4 py-2 text-left">Date</th>
+                          <th className="px-4 py-2 text-left">Orders</th>
+                          <th className="px-4 py-2 text-left">Revenue</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {merchant.dailyStats.map((day) => (
+                          <tr key={day.date} className="border-t">
+                            <td className="px-4 py-2">{day.date}</td>
+                            <td className="px-4 py-2">{day.orderCount}</td>
+                            <td className="px-4 py-2">
+                              {Object.entries(day.revenue).map(([currency, amount]) => (
+                                <div key={currency}>
+                                  {currency}: ${(amount as number).toFixed(2)}
+                                </div>
+                              ))}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           ))}
 
